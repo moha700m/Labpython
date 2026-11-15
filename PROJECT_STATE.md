@@ -9,7 +9,7 @@ _آخر تحديث: 2026-11-15 — الفرع `claude/muhammad-cpp-studio-w49fh8
 | المستودع | `moha700m/Labpython` |
 | الفرع `main` | **غير موجود على الخادم** — المستودع فارغ تماماً (لا commits ولا ملفات) |
 | الملفات/الإعدادات الموجودة | لا شيء — لم يُستبدل أو يُحذف أي عمل سابق |
-| الرخصة | **لا توجد رخصة**. لم نخترها نيابةً عن المالك (حقل `license` محذوف من package.json) |
+| الرخصة | لم تكن موجودة — **أُضيفت MIT** بطلب المالك |
 | كود خارجي | لا يوجد كود منسوخ؛ كل الاعتماديات من npm أو حزم النظام، وتراخيصها في SECURITY.md |
 | البيئة المتاحة للتطوير | Ubuntu 24.04، Node 22، GCC 13، Clang 18، CMake، bubblewrap 0.9، MinGW-w64 13 و Wine 9 (ثُبّتا خلال العمل)، Docker |
 
@@ -23,7 +23,8 @@ _آخر تحديث: 2026-11-15 — الفرع `claude/muhammad-cpp-studio-w49fh8
 | **4 Live Preview** | ✅ عبر Wine | Windows Runner معزول، جلسة وبادئة Wine جديدة لكل تشغيل، بث إطارات JPEG عبر WebSocket، ماوس ولوحة مفاتيح، لقطة شاشة، إيقاف، تنظيف. **العامل الأصلي على Windows غير منفّذ** |
 | **5 AI Assistant** | ✅ مبني ومختبر بمزوّد وهمي | Claude عبر SDK الرسمي، مفتاح على الخادم فقط، اقتراحات مع عرض فروقات وموافقة صريحة. **لم يُختبر مع مفتاح حقيقي** (لا يوجد مفتاح في هذه البيئة ولا نطلبه في المحادثة) |
 | **6 Professional Tools** | 🟡 جزئي | منفّذ: خيارات المترجم (قائمة مسموحة)، Debug/Release، متغيرات البيئة، مكتبات، CMake/Make. **غير منفّذ**: Debugger/Breakpoints/Call stack/Memory، Profiling، Git، إدارة الاعتماديات، CMake Presets — الأزرار معطّلة ومعلَن ذلك |
-| **7 Production** | 🟡 جزئي | اختبارات شاملة + مراجعة أمنية + CI + Dockerfiles + docs. **النشر غير مُفعّل**: لا توجد استضافة مُعدّة؛ مهمة deploy تعمل فقط عند إضافة `DEPLOY_HOOK_URL` |
+| **7 Production** | 🟡 جزئي | اختبارات شاملة + مراجعة أمنية + CI + Dockerfiles + docs + **GitHub Codespaces** (`.devcontainer/`) لتشغيل المنصة كاملة على GitHub. لا يوجد خادم عام دائم؛ مهمة deploy تعمل فقط عند إضافة `DEPLOY_HOOK_URL` |
+| **إضافة: صفحة /run/** | ✅ | ارفع ملف ← بناء EXE ← تشغيل وتحكم ← تنزيل، مع كشف WinMain تلقائياً |
 
 ## 3. الاختبارات التي شُغّلت فعلياً ونتائجها
 
@@ -55,8 +56,10 @@ _آخر تحديث: 2026-11-15 — الفرع `claude/muhammad-cpp-studio-w49fh8
 ```
 pnpm lint            → 0 errors
 pnpm typecheck       → 8/8 packages OK
-npx vitest run       → 10 files, 97 tests passed (50 unit, 27 security, 20 integration)
-node tests/e2e/run-e2e.mjs → 10/10 steps passed (desktop 1440×900 + iPhone 15 Pro viewport)
+npx vitest run       → 11 files, 101 tests passed (54 unit, 27 security, 20 integration)
+node tests/e2e/run-e2e.mjs → 12/12 steps passed (desktop 1440×900 + iPhone 15 Pro viewport, incl. /run/)
+devcontainer (typescript-node:22-bookworm, privileged, non-root) → setup.sh + start.sh OK,
+  6 worker capabilities online, console-app → PE32+ EXE → Wine 8 run with Arabic output OK
 pnpm --filter @mcs/web build → static export OK
 ```
 
@@ -77,8 +80,8 @@ pnpm --filter @mcs/web build → static export OK
 
 ## 5. الخطوات التالية المقترحة
 
-1. اختيار رخصة للمشروع.
-2. ربط استضافة (VPS بـ Docker Compose) وإضافة `DEPLOY_HOOK_URL` و `MCS_WORKER_TOKEN` كأسرار.
+1. فتح Codespace فعلي من زر README والتأكد من الرابط العام (لم يُنشأ من هذه الجلسة).
+2. لخادم عام دائم: VPS بـ Docker Compose وإضافة `DEPLOY_HOOK_URL` و `MCS_WORKER_TOKEN` كأسرار.
 3. إضافة `ANTHROPIC_API_KEY` على الخادم لتفعيل المساعد واختباره بمفتاح حقيقي.
 4. المرحلة 6: Debugger عبر gdb/MI في العامل (Linux أولاً)، ثم Git (isomorphic-git أو عبر الخادم)، ثم clangd عبر LSP لـ IntelliSense كامل.
 5. اختبار يدوي على iPhone Safari حقيقي، وإضافة WebKit إلى CI.

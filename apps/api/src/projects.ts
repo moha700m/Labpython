@@ -82,6 +82,21 @@ export function loadTemplates(dir: string): TemplateInfo[] {
   return out;
 }
 
+/**
+ * Infer build settings from uploaded sources: a WinMain/wWinMain entry point means a Win32 GUI
+ * program (Windows subsystem, plus -municode for wWinMain); <windows.h> means Windows-only code.
+ */
+export function inferConfig(files: ProjectFile[]): Partial<BuildConfig> {
+  const sources = files.filter((f) => f.encoding === "utf8" && /\.(c|cc|cpp|cxx|c\+\+)$/i.test(f.path)).map((f) => f.content);
+  const all = sources.join("\n");
+  const cfg: Partial<BuildConfig> = {};
+  if (/\bwWinMain\s*\(/.test(all)) {
+    cfg.windowsSubsystem = "windows";
+    cfg.linkFlags = ["-municode"];
+  } else if (/\bWinMain\s*\(/.test(all)) cfg.windowsSubsystem = "windows";
+  return cfg;
+}
+
 export class ProjectError extends Error {
   constructor(public status: number, public code: string, public messageAr: string) {
     super(code);
@@ -124,7 +139,8 @@ export class Projects {
 
   create(userId: string, input: { name: string; description?: string; template?: string | null; config?: Partial<BuildConfig>; files: ProjectFile[] }) {
     const id = randomUUID();
-    const config = mergeConfig(input.config);
+    // Templates bring their own config; uploaded code gets sensible settings inferred from its content.
+    const config = mergeConfig(input.config ?? inferConfig(input.files));
     const t = now();
     this.db.exec("BEGIN");
     try {

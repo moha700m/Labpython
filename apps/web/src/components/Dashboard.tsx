@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { FileArchive, FolderUp, GraduationCap, LogOut, Plus, Trash2 } from "lucide-react";
+import { FileArchive, FolderUp, GraduationCap, LogOut, Plus, Trash2, Zap } from "lucide-react";
 import { ApiError, api, type Capabilities, type Project, type Template, type User } from "@/lib/api";
 import { Brand, Modal, Spinner, ThemeToggle, Toasts, useToasts } from "./common";
 
@@ -103,6 +103,9 @@ export function Dashboard({ user, onLogout }: { user: User; onLogout: () => void
             <p className="mt-1 text-sm text-ink-2">أنشئ مشروعاً من قالب، أو ارفع مشروعاً موجوداً بصيغة ZIP أو كمجلد.</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <a className="btn border-accent/60 text-accent" href="/run/">
+              <Zap size={16} /> ارفع ملفك وشغّله فوراً
+            </a>
             <button className="btn btn-primary" onClick={() => setNewOpen(true)} disabled={busy}>
               <Plus size={16} /> مشروع جديد
             </button>

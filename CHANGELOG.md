@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-11-15
+
+### Added
+- `/run/` page: drop a `.cpp`, several files or a `.zip` → project → real Windows EXE → automatic run
+  in the Windows Runner (interactive console, or live window for WinMain programs) → download.
+- Uploaded sources are inspected: `WinMain` → Windows GUI subsystem, `wWinMain` → plus `-municode`.
+- GitHub Codespaces support (`.devcontainer/`): the whole platform starts on GitHub with one click.
+- MIT license.
+- Tests: `inferConfig` unit tests; two new E2E steps for `/run/` (12 E2E steps total).
+
 ## 0.1.0 — 2026-11-15 (unreleased, development branch)
 
 First working version, built from an empty repository.

@@ -145,6 +145,53 @@ try {
     await page.screenshot({ path: join(SHOTS, "07-learn.png") });
   });
 
+  await step("quick run page: upload a console .cpp → EXE → interactive run", async () => {
+    await page.goto(BASE + "/run/");
+    await page.getByRole("heading", { name: "ارفع ملفك، وشغّل تطبيقك" }).waitFor();
+    await page.screenshot({ path: join(SHOTS, "11-quick-run.png") });
+    const src = '#include <iostream>\n#include <string>\n#include <windows.h>\nint main(){SetConsoleOutputCP(CP_UTF8);std::cout<<"Your name? "<<std::flush;std::string n;std::getline(std::cin,n);std::cout<<"أهلاً "<<n<<"\\n";}\n';
+    await page.getByLabel("اختر ملفات C++ أو ZIP").setInputFiles({ name: "hello.cpp", mimeType: "text/plain", buffer: Buffer.from(src) });
+    const log = page.getByRole("log", { name: "مخرجات البرنامج" });
+    await log.getByText("Your name?").waitFor({ timeout: 120000 });
+    await page.getByLabel("إدخال للبرنامج").fill("Saad");
+    await page.getByLabel("إدخال للبرنامج").press("Enter");
+    await log.getByText("أهلاً Saad").waitFor({ timeout: 30000 });
+    await page.getByRole("link", { name: /تنزيل EXE/ }).waitFor();
+    await page.screenshot({ path: join(SHOTS, "12-quick-run-console.png") });
+  });
+
+  await step("quick run page: upload a WinMain .cpp → live window → click", async () => {
+    await page.getByRole("button", { name: /ملف آخر/ }).click();
+    const gui = `#include <windows.h>
+static int clicks = 0; static HWND label;
+LRESULT CALLBACK P(HWND h, UINT m, WPARAM w, LPARAM l){
+  if (m == WM_CREATE){ CreateWindowA("BUTTON","Press",WS_VISIBLE|WS_CHILD,20,20,140,40,h,(HMENU)1,0,0); label = CreateWindowA("STATIC","0",WS_VISIBLE|WS_CHILD,20,80,200,24,h,0,0,0); return 0; }
+  if (m == WM_COMMAND && LOWORD(w) == 1){ char b[32]; wsprintfA(b, "clicked %d", ++clicks); SetWindowTextA(label, b); return 0; }
+  if (m == WM_DESTROY){ PostQuitMessage(0); return 0; }
+  return DefWindowProcA(h, m, w, l); }
+int WINAPI WinMain(HINSTANCE i, HINSTANCE, LPSTR, int s){ WNDCLASSA c{}; c.lpfnWndProc=P; c.hInstance=i; c.lpszClassName="Q"; c.hbrBackground=(HBRUSH)(COLOR_WINDOW+1); RegisterClassA(&c);
+  HWND h = CreateWindowA("Q","Quick GUI",WS_OVERLAPPEDWINDOW,0,0,320,200,0,0,i,0); ShowWindow(h,s); MSG msg; while(GetMessageA(&msg,0,0,0)>0){TranslateMessage(&msg);DispatchMessageA(&msg);} return 0; }
+`;
+    await page.getByLabel("اختر ملفات C++ أو ZIP").setInputFiles({ name: "gui.cpp", mimeType: "text/plain", buffer: Buffer.from(gui) });
+    const img = page.getByAltText("معاينة نافذة البرنامج");
+    await page.waitForFunction(() => {
+      const i = document.querySelector('img[alt="معاينة نافذة البرنامج"]');
+      return i && i.style.visibility === "visible" && i.naturalWidth > 0;
+    }, null, { timeout: 120000 });
+    await page.waitForTimeout(1500);
+    const box = await img.boundingBox();
+    let cw = box.width, ch = box.height;
+    if (cw / ch > 1024 / 768) cw = ch * (1024 / 768); else ch = cw / (1024 / 768);
+    const before = await img.getAttribute("src");
+    // The window client area starts ~23px down, so the button spans about (20..160, 43..83) on screen.
+    await page.mouse.click(box.x + (box.width - cw) / 2 + (90 / 1024) * cw, box.y + (box.height - ch) / 2 + (63 / 768) * ch);
+    await page.screenshot({ path: join(SHOTS, "13-quick-run-gui.png") });
+    await page.waitForFunction((b) => document.querySelector('img[alt="معاينة نافذة البرنامج"]').getAttribute("src") !== b, before, { timeout: 15000 });
+    await page.waitForTimeout(800);
+    await page.screenshot({ path: join(SHOTS, "13-quick-run-gui.png") });
+    await page.getByRole("button", { name: "إيقاف" }).first().click();
+  });
+
   if (consoleErrors.length) console.log("page errors:", consoleErrors);
 
   // Mobile (iPhone viewport + UA, rendered by Chromium — NOT real Safari).

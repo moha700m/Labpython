@@ -1,7 +1,23 @@
 # Deployment
 
-No hosting provider is configured for this repository yet. Everything below is ready to run on a
-Linux host you control; CI deploys only when you add a deployment hook secret.
+The quickest way to run the full platform is GitHub Codespaces (below). For a permanent public
+server use Docker Compose on a Linux host you control; CI deploys only when you add a deployment
+hook secret.
+
+## GitHub Codespaces (the server runs on GitHub)
+
+`.devcontainer/` contains everything: `devcontainer.json` (Node 22 image, privileged so bubblewrap
+can isolate user code, port 4000 forwarded and opened automatically), `setup.sh` (toolchains, Wine,
+`pnpm install`, web build — runs once) and `start.sh` (generates a random worker token, starts the
+API + build worker + Windows runner in the background on every start, prints the `/run/` URL).
+
+Open it with the badge in README or *Code → Codespaces → Create codespace on main*. The forwarded
+port is private to your GitHub account by default; `start.sh` tries to make it public
+(`gh codespace ports visibility 4000:public`) so others can open the link — change it back under the
+**Ports** tab if you want it private. Codespaces stop after inactivity and consume your monthly
+Codespaces quota. Verified locally in the same `typescript-node:22-bookworm` image (privileged,
+non-root): all six worker capabilities come up, a template builds into a PE32+ EXE and runs under
+Wine 8 with correct Arabic output. A real Codespace has not been created from this session.
 
 ## Single host with Docker Compose
 

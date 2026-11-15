@@ -2,9 +2,21 @@
 
 منصة تطوير C++ عربية تعمل من المتصفح (الكمبيوتر والجوال): أنشئ مشروعاً أو ارفعه، حرّر الكود في محرر احترافي، اضغط **بناء** لتحصل على ملف **Windows EXE حقيقي**، ثم نزّله أو شغّله وتفاعل معه من المتصفح.
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/moha700m/Labpython?quickstart=1)
+
 > An Arabic-first, browser-based C++ IDE: edit, build real Windows `.exe` files on isolated workers, download them, or run and interact with them from the browser.
 
 ![IDE](docs/screenshots/05-run-terminal.png)
+
+## 🚀 شغّل المنصة على GitHub بضغطة واحدة
+
+1. اضغط زر **Open in GitHub Codespaces** أعلاه (أو: Code ← Codespaces ← Create codespace on main).
+2. انتظر الإعداد أول مرة (تثبيت المترجمات وWine وبناء الواجهة — عدة دقائق).
+3. يُفتح الموقع تلقائياً على المنفذ 4000. افتح **`/run/`**: اسحب ملف `.cpp` أو `.zip` ← يُبنى EXE حقيقي ← يشتغل أمامك (طرفية تفاعلية أو نافذة حية تتحكم فيها) ← نزّل EXE.
+
+الرابط يكون بالشكل `https://<اسم-الـcodespace>-4000.app.github.dev/run/` (يُطبع أيضاً في الطرفية). Codespaces مجاني ضمن الحصة الشهرية لحسابك ويتوقف تلقائياً عند الخمول؛ لإعادة التشغيل يكفي فتح الـ Codespace من جديد، أو تنفيذ `bash .devcontainer/start.sh`.
+
+![ارفع وشغّل](docs/screenshots/13-quick-run-gui.png)
 
 ## ما الذي يعمل الآن (مُختبر فعلياً)
 
@@ -23,6 +35,8 @@
 | تشغيل برامج Console تفاعلياً من المتصفح (Linux معزول، أو EXE عبر Windows Runner) | ✅ |
 | معاينة حية لبرامج Win32 الرسومية مع الماوس ولوحة المفاتيح ولقطة شاشة | ✅ (عبر Wine، انظر الملاحظات) |
 | وضع تعليمي: دروس وتمارين يُتحقق منها بالبناء والتشغيل الفعلي | ✅ |
+| صفحة «ارفع ملفك وشغّله» (`/run/`): رفع ← بناء EXE ← تشغيل وتحكم ← تنزيل، مع كشف تلقائي لبرامج WinMain | ✅ |
+| تشغيل المنصة كاملة على GitHub Codespaces | ✅ مُختبر داخل نفس صورة Codespaces محلياً |
 | مساعد ذكاء اصطناعي عربي بموافقة على كل تعديل (عرض الفروقات) | ✅ مبني — يحتاج مفتاح مزوّد على الخادم |
 | Debugging / Breakpoints / Profiling / Git | ⏳ لم يُنفّذ بعد (الزر معطّل ومعلَن كذلك) |
 | MSVC وWindows Worker أصلي | ⏳ موثّق فقط — يحتاج بنية Windows |
@@ -74,4 +88,4 @@ tests/              unit / security / integration / e2e
 
 ## الرخصة
 
-لا توجد رخصة في المستودع بعد — اختيارها قرار مالك المشروع. المكتبات الخارجية المستخدمة وتراخيصها مذكورة في [SECURITY.md](SECURITY.md#third-party-components).
+[MIT](LICENSE). المكتبات الخارجية المستخدمة وتراخيصها مذكورة في [SECURITY.md](SECURITY.md#third-party-components).
