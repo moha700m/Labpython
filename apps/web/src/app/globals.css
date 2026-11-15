@@ -2,19 +2,19 @@
 
 /* Theme tokens. Dark is the default; light is opt-in via data-theme="light". */
 :root {
-  --bg: #0a0e13;
-  --surface: #10161d;
-  --surface-2: #151d26;
-  --surface-3: #1b2530;
-  --line: #233040;
-  --line-strong: #2f3f52;
+  --bg: #08100c;
+  --surface: #0e1813;
+  --surface-2: #13201a;
+  --surface-3: #1a2a22;
+  --line: #22362c;
+  --line-strong: #2e473a;
   --text: #e6edf3;
   --text-2: #9fb0c2;
   --text-3: #6b7d90;
-  --accent: #f2b33d; /* brass — the studio's signature */
-  --accent-ink: #1a1306;
-  --accent-soft: rgba(242, 179, 61, 0.12);
-  --teal: #38d6b6;
+  --accent: #1fb46b; /* Saudi green */
+  --accent-ink: #03140b;
+  --accent-soft: rgba(31, 180, 107, 0.13);
+  --teal: #d4af5a; /* gold */
   --danger: #ff6b6b;
   --warn: #f5c451;
   --info: #6cb6ff;
@@ -22,19 +22,19 @@
   color-scheme: dark;
 }
 :root[data-theme="light"] {
-  --bg: #f4f1ea;
-  --surface: #fbf9f4;
-  --surface-2: #f1ede4;
-  --surface-3: #e7e1d4;
-  --line: #ddd5c4;
-  --line-strong: #c9bfa9;
+  --bg: #f3f6f2;
+  --surface: #ffffff;
+  --surface-2: #eef3ee;
+  --surface-3: #e2ebe3;
+  --line: #d3dfd5;
+  --line-strong: #b9cbbd;
   --text: #1d232b;
   --text-2: #4c5866;
   --text-3: #7a8592;
-  --accent: #b7791f;
-  --accent-ink: #fffaf0;
-  --accent-soft: rgba(183, 121, 31, 0.12);
-  --teal: #0f9b84;
+  --accent: #006c35; /* Saudi flag green */
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(0, 108, 53, 0.1);
+  --teal: #9a7425;
   --danger: #c93c3c;
   --warn: #a8740a;
   --info: #2a6fb5;

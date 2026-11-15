@@ -15,7 +15,8 @@ interface Rule {
 
 const q = (s: string | undefined) => (s ? `«${s}»` : "");
 
-const STD_HEADERS: Record<string, string> = {
+/** Standard-library names → the header that declares them (used by explanations and auto-fix). */
+export const STD_HEADERS: Record<string, string> = {
   cout: "<iostream>", cin: "<iostream>", cerr: "<iostream>", endl: "<iostream>",
   string: "<string>", vector: "<vector>", map: "<map>", unordered_map: "<unordered_map>",
   set: "<set>", sort: "<algorithm>", max: "<algorithm>", min: "<algorithm>", array: "<array>",

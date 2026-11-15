@@ -109,7 +109,7 @@ try {
   await step("GUI app: live preview frame and click interaction", async () => {
     await page.goto(BASE + "/");
     await page.getByRole("button", { name: "مشروع جديد" }).first().click();
-    await page.getByRole("button", { name: /واجهة Windows/ }).click();
+    await page.getByRole("button", { name: /تطبيق واجهة Windows/ }).click();
     await page.getByRole("button", { name: "إنشاء وفتح" }).click();
     await page.waitForURL(/\/ide\//);
     await page.locator(".monaco-editor").first().waitFor({ timeout: 30000 });
@@ -147,7 +147,7 @@ try {
 
   await step("quick run page: upload a console .cpp → EXE → interactive run", async () => {
     await page.goto(BASE + "/run/");
-    await page.getByRole("heading", { name: "ارفع ملفك، وشغّل تطبيقك" }).waitFor();
+    await page.getByRole("heading", { name: /ارفع ملفك، وخلّه يشتغل/ }).waitFor();
     await page.screenshot({ path: join(SHOTS, "11-quick-run.png") });
     const src = '#include <iostream>\n#include <string>\n#include <windows.h>\nint main(){SetConsoleOutputCP(CP_UTF8);std::cout<<"Your name? "<<std::flush;std::string n;std::getline(std::cin,n);std::cout<<"أهلاً "<<n<<"\\n";}\n';
     await page.getByLabel("اختر ملفات C++ أو ZIP").setInputFiles({ name: "hello.cpp", mimeType: "text/plain", buffer: Buffer.from(src) });
@@ -161,7 +161,7 @@ try {
   });
 
   await step("quick run page: upload a WinMain .cpp → live window → click", async () => {
-    await page.getByRole("button", { name: /ملف آخر/ }).click();
+    await page.getByRole("button", { name: /ملف ثاني/ }).click();
     const gui = `#include <windows.h>
 static int clicks = 0; static HWND label;
 LRESULT CALLBACK P(HWND h, UINT m, WPARAM w, LPARAM l){
@@ -212,6 +212,60 @@ int WINAPI WinMain(HINSTANCE i, HINSTANCE, LPSTR, int s){ WNDCLASSA c{}; c.lpfnW
     await m.getByRole("button", { name: "بناء", exact: true }).click();
     await m.getByText("PE32+", { exact: false }).first().waitFor({ timeout: 90000 });
     await m.screenshot({ path: join(SHOTS, "10-mobile-build.png") });
+  });
+  // ---- Saudi / simple / smart flows, as a first-time visitor on a phone (no account) ----
+  const g = await browser.newContext({ ...devices["iPhone 15 Pro"], acceptDownloads: true });
+  const gp = await g.newPage();
+  gp.on("dialog", (d) => d.accept());
+  let sharedUrl = "";
+  await step("phone, no account: 'try now' → example VAT calculator runs", async () => {
+    await gp.goto(BASE + "/");
+    await gp.getByRole("link", { name: /جرّب الحين بدون تسجيل/ }).click();
+    await gp.waitForURL(/\/run\//);
+    await gp.getByRole("button", { name: /حاسبة ضريبة القيمة المضافة/ }).waitFor({ timeout: 15000 });
+    await gp.screenshot({ path: join(SHOTS, "14-mobile-run-examples.png") });
+    await gp.getByRole("button", { name: /حاسبة ضريبة القيمة المضافة/ }).click();
+    const log = gp.getByRole("log", { name: "مخرجات البرنامج" });
+    await log.getByText(/أدخل السعر/).waitFor({ timeout: 120000 });
+    await gp.getByLabel("إدخال للبرنامج").fill("100");
+    await gp.getByLabel("إدخال للبرنامج").press("Enter");
+    await log.getByText(/115\.00/).waitFor({ timeout: 30000 });
+    await gp.screenshot({ path: join(SHOTS, "15-mobile-vat.png") });
+  });
+
+  await step("smart auto-fix: broken upload → 'fix it' → builds and runs", async () => {
+    await gp.getByRole("button", { name: /ملف ثاني/ }).click();
+    const broken = 'int main() {\n    std::string name = "سعد";\n    std::cout << "هلا " << name << std::endl\n    return 0;\n}\n';
+    await gp.getByLabel("اختر ملفات C++ أو ZIP").setInputFiles({ name: "broken.cpp", mimeType: "text/plain", buffer: Buffer.from(broken) });
+    await gp.getByText("لقينا حل للمشكلة").waitFor({ timeout: 120000 });
+    await gp.screenshot({ path: join(SHOTS, "16-mobile-autofix.png") });
+    await gp.getByRole("button", { name: /أصلحها وأعد البناء/ }).click();
+    // A second round may appear if the first build hid follow-up errors.
+    const log = gp.getByRole("log", { name: "مخرجات البرنامج" });
+    for (let i = 0; i < 3; i++) {
+      const done = await log.getByText(/برمز 0/).waitFor({ timeout: 60000 }).then(() => true).catch(() => false);
+      if (done) break;
+      const again = gp.getByRole("button", { name: /أصلحها وأعد البناء/ });
+      if (await again.isVisible()) await again.click();
+    }
+    await log.getByText(/برمز 0/).waitFor({ timeout: 5000 });
+  });
+
+  await step("share link: anyone opens it and runs their own copy", async () => {
+    await gp.getByRole("button", { name: /شارك برابط/ }).click();
+    const field = gp.getByLabel("رابط المشاركة");
+    await field.waitFor({ timeout: 15000 });
+    sharedUrl = await field.inputValue();
+    if (!/\/share\/\?id=/.test(sharedUrl)) throw new Error("bad share url " + sharedUrl);
+    const v = await browser.newContext({ ...devices["iPhone 15 Pro"] });
+    const vp = await v.newPage();
+    await vp.goto(sharedUrl);
+    await vp.getByRole("button", { name: /شغّله الحين/ }).waitFor({ timeout: 15000 });
+    await vp.screenshot({ path: join(SHOTS, "17-mobile-share.png") });
+    await vp.getByRole("button", { name: /شغّله الحين/ }).click();
+    await vp.waitForURL(/\/run\/\?project=/);
+    await vp.getByRole("log", { name: "مخرجات البرنامج" }).getByText(/برمز 0/).waitFor({ timeout: 120000 });
+    await v.close();
   });
 } catch {
   exitCode = 1;

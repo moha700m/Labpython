@@ -56,6 +56,7 @@ export interface Template {
   nameAr: string;
   descriptionAr: string;
   level: "beginner" | "intermediate" | "pro";
+  example: boolean;
   config: BuildConfig;
   files: string[];
 }
@@ -87,6 +88,12 @@ export const api = {
   login: (email: string, password: string) => request<{ user: User }>("POST", "/api/auth/login", { email, password }),
   register: (email: string, name: string, password: string) => request<{ user: User }>("POST", "/api/auth/register", { email, name, password }),
   logout: () => request<{ ok: boolean }>("POST", "/api/auth/logout", {}),
+  guest: () => request<{ user: User }>("POST", "/api/auth/guest", {}),
+  share: (id: string) => request<{ id: string; path: string }>("POST", `/api/projects/${id}/share`, {}),
+  getShare: (id: string) => request<{ name: string; files: ProjectFile[]; config: BuildConfig; createdAt: string }>("GET", `/api/shares/${id}`),
+  fork: (id: string) => request<{ project: Project }>("POST", `/api/shares/${id}/fork`, {}),
+  autofix: (id: string, jobId: string, apply: boolean) =>
+    request<{ fixes: { path: string; descriptionAr: string }[]; changedFiles: string[]; config: Partial<BuildConfig>; applied: boolean }>("POST", `/api/projects/${id}/autofix`, { jobId, apply }),
   capabilities: () => request<Capabilities>("GET", "/api/capabilities"),
   templates: () => request<Template[]>("GET", "/api/templates"),
   projects: () => request<{ projects: Project[] }>("GET", "/api/projects"),
@@ -129,6 +136,26 @@ export function wsUrl(path: string): string {
   if (devOrigin) return devOrigin + path;
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
   return `${proto}//${location.host}${path}`;
+}
+
+/** Share a project: native share sheet on phones, clipboard elsewhere. Returns the URL. */
+export async function shareProject(projectId: string, name: string): Promise<string> {
+  const { path } = await api.share(projectId);
+  const url = location.origin + path;
+  try {
+    if (navigator.share) await navigator.share({ title: name, text: "شوف كودي على Muhammad C++ Studio", url });
+    else await navigator.clipboard.writeText(url);
+  } catch {
+    /* user cancelled */
+  }
+  return url;
+}
+
+/** Make sure there is a session: reuse the current user or create a one-tap guest account. */
+export async function ensureUser(): Promise<User> {
+  const { user } = await api.me();
+  if (user) return user;
+  return (await api.guest()).user;
 }
 
 /** Follow a job with long-polling; calls onUpdate with each new state (log is cumulative). */

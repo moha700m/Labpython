@@ -1,11 +1,11 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  AlertTriangle, Bug, Code2, Download, FileArchive, Files, Hammer, LayoutPanelLeft, Monitor, Play, Settings2, Sparkles, Square, TerminalSquare, Wand2, XCircle,
+  AlertTriangle, Bug, Code2, Download, FileArchive, Files, Hammer, LayoutPanelLeft, Monitor, Play, Settings2, Share2, Sparkles, Square, TerminalSquare, Wand2, XCircle,
 } from "lucide-react";
 import type { BuildConfig, Diagnostic, ProjectFile } from "@mcs/shared";
 import { formatBytesAr, formatDurationAr } from "@mcs/localization";
-import { ApiError, api, followJob, type ArtifactRow, type Capabilities, type FileEntry, type JobDetail, type Project, type ProposedChange } from "@/lib/api";
+import { ApiError, api, followJob, shareProject, type ArtifactRow, type Capabilities, type FileEntry, type JobDetail, type Project, type ProposedChange } from "@/lib/api";
 import { RunSession } from "@/lib/run";
 import { Brand, Spinner, ThemeToggle, Toasts, useTheme, useToasts } from "../common";
 import { CodeEditor, type CodeEditorHandle } from "./CodeEditor";
@@ -334,6 +334,42 @@ export function IDE({ projectId }: { projectId: string }) {
     }
   };
 
+  /** Smart fixes for the last failed build (computed server-side from its diagnostics). */
+  const smartFix = async () => {
+    if (!job || job.type !== "build") return;
+    try {
+      await saveAll();
+      const preview = await api.autofix(projectId, job.id, false);
+      if (!preview.fixes.length) {
+        toasts.push("ما لقينا إصلاح تلقائي لهذي الأخطاء — جرّب المساعد الذكي أو اقرأ الشرح تحت كل خطأ.", "info");
+        return;
+      }
+      if (!confirm("بنسوي التعديلات التالية:\n\n" + preview.fixes.map((f) => "• " + f.descriptionAr).join("\n") + "\n\nموافق؟")) return;
+      const applied = await api.autofix(projectId, job.id, true);
+      const fresh = await api.project(projectId);
+      setProject(fresh.project);
+      setFiles(fresh.files);
+      for (const p of applied.changedFiles) {
+        const { file } = await api.readFile(projectId, p);
+        setBuffers((b) => ({ ...b, [p]: { content: file.content, saved: file.content, encoding: file.encoding } }));
+      }
+      toasts.push("تم الإصلاح ✔ نعيد البناء…", "ok");
+      setTimeout(() => void build(), 50);
+    } catch (e) {
+      toasts.push(e instanceof ApiError ? e.messageAr : "تعذّر الإصلاح", "error");
+    }
+  };
+
+  const share = async () => {
+    try {
+      await saveAll();
+      await shareProject(projectId, project?.name ?? "");
+      toasts.push("تم نسخ رابط المشاركة 🔗", "ok");
+    } catch (e) {
+      toasts.push(e instanceof ApiError ? e.messageAr : "تعذّرت المشاركة", "error");
+    }
+  };
+
   const saveConfig = async (c: BuildConfig) => {
     try {
       const { project: p } = await api.updateProject(projectId, { config: c });
@@ -456,6 +492,15 @@ export function IDE({ projectId }: { projectId: string }) {
 
   const problems = (
     <div className="h-full overflow-auto scroll-thin">
+      {errors > 0 && job?.status === "failed" && (
+        <div className="flex items-center gap-2 border-b border-line bg-accent-soft px-3 py-2">
+          <Wand2 size={15} className="text-accent" />
+          <span className="text-[13px] text-ink-2">نقدر نصلح الأخطاء الشائعة تلقائياً</span>
+          <button className="btn btn-primary ms-auto px-2.5 py-1 text-xs" onClick={smartFix}>
+            إصلاح تلقائي
+          </button>
+        </div>
+      )}
       {diagnostics.length === 0 ? (
         <p className="p-4 text-sm text-ink-3">لا توجد مشكلات. {job?.status === "succeeded" ? "البناء الأخير نجح." : ""}</p>
       ) : (
@@ -636,6 +681,9 @@ export function IDE({ projectId }: { projectId: string }) {
         </div>
         <div className="ms-auto flex items-center gap-1">
           {toolbar}
+          <button className="btn btn-ghost px-2" onClick={share} title="شارك برابط" aria-label="شارك برابط">
+            <Share2 size={15} />
+          </button>
           <button className="btn btn-ghost hidden px-2 sm:inline-flex" onClick={() => void format()} title="تنسيق الكود (Shift+Alt+F)" aria-label="تنسيق الكود">
             <Wand2 size={15} />
           </button>

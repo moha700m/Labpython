@@ -45,6 +45,16 @@ export class Auth {
     return { id, email: normalized, name: name.trim() };
   }
 
+  /** One-tap guest account: random credentials the user never sees; data persists while the session lives. */
+  async guest(): Promise<User> {
+    const id = randomUUID();
+    const email = `guest-${id.slice(0, 12)}@guest.local`;
+    this.db
+      .prepare("INSERT INTO users (id, email, name, password_hash, created_at, is_guest) VALUES (?, ?, ?, ?, ?, 1)")
+      .run(id, email, "ضيف", await hashPassword(randomBytes(24).toString("base64url")), now());
+    return { id, email, name: "ضيف" };
+  }
+
   async login(email: string, password: string): Promise<User | null> {
     const row = this.db.prepare("SELECT id, email, name, password_hash FROM users WHERE email = ?").get(email.trim().toLowerCase()) as
       | (User & { password_hash: string })

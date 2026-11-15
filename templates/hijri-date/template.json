@@ -1,0 +1,2 @@
+{ "nameAr": "تحويل التاريخ إلى هجري", "descriptionAr": "يحوّل تاريخاً ميلادياً إلى هجري بالتقويم الحسابي (قد يختلف يوماً عن تقويم أم القرى).", "level": "intermediate", "example": true,
+  "config": { "compiler": "mingw-gcc", "target": "windows-exe", "standard": "c++20", "outputName": "hijri", "windowsSubsystem": "console" } }

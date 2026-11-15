@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { timingSafeEqual } from "node:crypto";
+import { randomBytes, timingSafeEqual } from "node:crypto";
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,8 +9,8 @@ import multipart from "@fastify/multipart";
 import websocket from "@fastify/websocket";
 import fastifyStatic from "@fastify/static";
 import { z } from "zod";
-import { FlagRejectedError, PlanError, TOOLCHAINS, planBuild } from "@mcs/compiler";
-import { LIMITS, UnsafePathError, ZipRejectedError, createZip, extractZipSafe, isAllowedProjectFile, isBinaryProjectFile, normalizeProjectPath } from "@mcs/shared";
+import { FlagRejectedError, PlanError, TOOLCHAINS, autoFix, planBuild } from "@mcs/compiler";
+import { type Diagnostic, LIMITS, UnsafePathError, ZipRejectedError, createZip, extractZipSafe, isAllowedProjectFile, isBinaryProjectFile, normalizeProjectPath } from "@mcs/shared";
 import { Auth, AuthError, SESSION_COOKIE, requireUser } from "./auth.ts";
 import { type AppConfig, loadConfig } from "./config.ts";
 import { openDb } from "./db.ts";
@@ -88,6 +88,7 @@ export async function buildApp(deps: Partial<AppDeps> = {}): Promise<FastifyInst
   registerJobRoutes(app, ctx);
   registerWorkerRoutes(app, ctx);
   registerAssistantRoutes(app, ctx);
+  registerShareRoutes(app, ctx);
 
   if (config.webDir && existsSync(config.webDir)) {
     await app.register(fastifyStatic, { root: config.webDir, prefix: "/", wildcard: true, index: ["index.html"] });
@@ -154,6 +155,15 @@ function registerAuthRoutes(app: FastifyInstance, ctx: Ctx) {
     return { user };
   });
 
+  app.post("/api/auth/guest", async (req, reply) => {
+    if (!ctx.config.allowRegistration) return reply.code(403).send({ error: "registration_closed", messageAr: "التسجيل مغلق" });
+    if (!ctx.loginLimiter.take(`guest:${req.ip}`)) return reply.code(429).send({ error: "rate_limited", messageAr: "محاولات كثيرة، حاول بعد دقيقة" });
+    const user = await ctx.auth.guest();
+    ctx.security.record("auth.register", { guest: true }, { userId: user.id, ip: req.ip });
+    setSession(reply, ctx.auth.createSession(user.id));
+    return { user };
+  });
+
   app.post("/api/auth/logout", async (req, reply) => {
     const token = req.cookies[SESSION_COOKIE];
     if (token) ctx.auth.destroySession(token);
@@ -188,7 +198,7 @@ function registerProjectRoutes(app: FastifyInstance, ctx: Ctx) {
   const user = (req: FastifyRequest, reply: FastifyReply) => requireUser(req, reply);
 
   app.get("/api/templates", async () =>
-    ctx.templates.map((t) => ({ id: t.id, nameAr: t.nameAr, descriptionAr: t.descriptionAr, level: t.level, config: mergeConfig(t.config), files: t.files.map((f) => f.path) })),
+    ctx.templates.map((t) => ({ id: t.id, nameAr: t.nameAr, descriptionAr: t.descriptionAr, level: t.level, example: t.example, config: mergeConfig(t.config), files: t.files.map((f) => f.path) })),
   );
 
   app.get("/api/projects", async (req, reply) => {
@@ -551,6 +561,62 @@ function registerWorkerRoutes(app: FastifyInstance, ctx: Ctx) {
       }
     }, 20_000);
     ctx.relay.attachWorker(req.params.id, socket, () => clearInterval(hb));
+  });
+}
+
+// ------------------------------------------------------------------ share + autofix
+
+function registerShareRoutes(app: FastifyInstance, ctx: Ctx) {
+  const alphabet = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const shareId = () => Array.from(randomBytes(10), (b) => alphabet[b % alphabet.length]).join("");
+
+  /** Snapshot a project into a public read-only link (code only — no artifacts, no account data). */
+  app.post<{ Params: { id: string } }>("/api/projects/:id/share", async (req, reply) => {
+    const u = requireUser(req, reply);
+    if (!u) return;
+    const p = ctx.projects.getOwned(u.id, req.params.id);
+    const files = ctx.projects.allFiles(p.id).filter((f) => f.encoding === "utf8");
+    const id = shareId();
+    ctx.db.prepare("INSERT INTO shares (id, user_id, name, files_json, config_json, created_at) VALUES (?, ?, ?, ?, ?, ?)").run(id, u.id, p.name, JSON.stringify(files), p.config_json, new Date().toISOString());
+    return { id, path: `/share/?id=${id}` };
+  });
+
+  app.get<{ Params: { id: string } }>("/api/shares/:id", async (req, reply) => {
+    if (!/^[A-Za-z0-9]{6,20}$/.test(req.params.id)) return reply.code(404).send({ error: "not_found", messageAr: "الرابط غير موجود" });
+    const row = ctx.db.prepare("SELECT name, files_json, config_json, created_at FROM shares WHERE id = ?").get(req.params.id) as
+      | { name: string; files_json: string; config_json: string; created_at: string }
+      | undefined;
+    if (!row) return reply.code(404).send({ error: "not_found", messageAr: "الرابط غير موجود" });
+    return { name: row.name, files: JSON.parse(row.files_json), config: mergeConfig(JSON.parse(row.config_json)), createdAt: row.created_at };
+  });
+
+  /** Copy a shared snapshot into the caller's own projects. */
+  app.post<{ Params: { id: string } }>("/api/shares/:id/fork", async (req, reply) => {
+    const u = requireUser(req, reply);
+    if (!u) return;
+    const row = ctx.db.prepare("SELECT name, files_json, config_json FROM shares WHERE id = ?").get(req.params.id) as { name: string; files_json: string; config_json: string } | undefined;
+    if (!row) return reply.code(404).send({ error: "not_found", messageAr: "الرابط غير موجود" });
+    return { project: ctx.projects.create(u.id, { name: `نسخة من ${row.name}`.slice(0, 100), config: JSON.parse(row.config_json), files: JSON.parse(row.files_json) }) };
+  });
+
+  /**
+   * Smart fixes for a failed build, computed from that build's own diagnostics.
+   * `apply: false` only previews; the client applies after the user taps the button.
+   */
+  app.post<{ Params: { id: string } }>("/api/projects/:id/autofix", async (req, reply) => {
+    const u = requireUser(req, reply);
+    if (!u) return;
+    const p = ctx.projects.getOwned(u.id, req.params.id);
+    const body = z.object({ jobId: z.string().uuid(), apply: z.boolean().default(false) }).parse(req.body);
+    const job = ctx.jobs.getOwned(u.id, body.jobId);
+    if (job.project_id !== p.id || !job.result_json) return reply.code(400).send({ error: "no_result", messageAr: "لا توجد نتيجة بناء لهذه المهمة" });
+    const diags = (JSON.parse(job.result_json).diagnostics ?? []) as Diagnostic[];
+    const result = autoFix(ctx.projects.allFiles(p.id), diags);
+    if (body.apply && (result.files.length || Object.keys(result.config).length)) {
+      if (result.files.length) ctx.projects.saveFiles(u.id, p.id, result.files);
+      if (Object.keys(result.config).length) ctx.projects.update(u.id, p.id, { config: { ...JSON.parse(p.config_json), ...result.config, linkFlags: result.config.windowsSubsystem === "console" ? [] : JSON.parse(p.config_json).linkFlags } });
+    }
+    return { fixes: result.fixes, changedFiles: result.files.map((f) => f.path), config: result.config, applied: body.apply };
   });
 }
 

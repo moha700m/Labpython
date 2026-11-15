@@ -1,0 +1,2 @@
+{ "nameAr": "حاسبة الزكاة", "descriptionAr": "تحسب زكاة المال (2.5٪) إذا بلغ النصاب وحال عليه الحول. أدخل قيمة النصاب حسب سعر الذهب اليوم.", "level": "beginner", "example": true,
+  "config": { "compiler": "mingw-gcc", "target": "windows-exe", "standard": "c++20", "outputName": "zakat", "windowsSubsystem": "console" } }

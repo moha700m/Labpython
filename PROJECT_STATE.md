@@ -26,6 +26,17 @@ _آخر تحديث: 2026-11-15 — الفرع `claude/muhammad-cpp-studio-w49fh8
 | **7 Production** | 🟡 جزئي | اختبارات شاملة + مراجعة أمنية + CI + Dockerfiles + docs + **GitHub Codespaces** (`.devcontainer/`) لتشغيل المنصة كاملة على GitHub. لا يوجد خادم عام دائم؛ مهمة deploy تعمل فقط عند إضافة `DEPLOY_HOOK_URL` |
 | **إضافة: صفحة /run/** | ✅ | ارفع ملف ← بناء EXE ← تشغيل وتحكم ← تنزيل، مع كشف WinMain تلقائياً |
 
+## 2.1 البحث عن مشاريع مشابهة (2026-11-15) وما أُخذ منها
+
+| المشروع | الفكرة القوية | ما طبّقناه |
+|---|---|---|
+| Compiler Explorer (godbolt) | مشاركة الكود برابط بدون تسجيل | روابط `/share/` + تشغيل نسخة بضغطة |
+| OnlineGDB | لقطة مشاركة ثابتة | اللقطة لا تتغير لو عدّل صاحبها الأصل |
+| Coddy (عربي) | ساحة تجربة فورية | `/run/` بدون حساب + أمثلة جاهزة |
+| — | لا أحد يقدم منصة عربية تُخرج EXE حقيقياً | تبقى هذه ميزتنا الأساسية |
+
+الإضافات: دخول ضيف، إصلاح تلقائي ذكي، مشاركة برابط، 5 أمثلة سعودية، هوية خضراء/ذهبية ولغة ودّية.
+
 ## 3. الاختبارات التي شُغّلت فعلياً ونتائجها
 
 كل ما يلي شُغّل في هذه البيئة على المكدّس الحقيقي (API + عمال حقيقيون + bubblewrap + MinGW + Wine)، بدون محاكاة.
@@ -56,8 +67,9 @@ _آخر تحديث: 2026-11-15 — الفرع `claude/muhammad-cpp-studio-w49fh8
 ```
 pnpm lint            → 0 errors
 pnpm typecheck       → 8/8 packages OK
-npx vitest run       → 11 files, 101 tests passed (54 unit, 27 security, 20 integration)
-node tests/e2e/run-e2e.mjs → 12/12 steps passed (desktop 1440×900 + iPhone 15 Pro viewport, incl. /run/)
+npx vitest run       → 13 files, 118 tests passed (61 unit, 31 security, 26 integration)
+node tests/e2e/run-e2e.mjs → 15/15 steps passed (desktop + iPhone 15 Pro viewport: /run/, guest,
+  Saudi example, auto-fix, share link)
 devcontainer (typescript-node:22-bookworm, privileged, non-root) → setup.sh + start.sh OK,
   6 worker capabilities online, console-app → PE32+ EXE → Wine 8 run with Arabic output OK
 pnpm --filter @mcs/web build → static export OK

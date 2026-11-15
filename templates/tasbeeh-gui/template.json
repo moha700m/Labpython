@@ -1,0 +1,2 @@
+{ "nameAr": "مسبحة إلكترونية (واجهة Windows)", "descriptionAr": "تطبيق Windows رسومي: زر للتسبيح وعدّاد وزر تصفير — يظهر كنافذة حية تتحكم فيها من المتصفح.", "level": "intermediate", "example": true,
+  "config": { "compiler": "mingw-gcc", "target": "windows-exe", "standard": "c++20", "outputName": "tasbeeh", "windowsSubsystem": "windows" } }

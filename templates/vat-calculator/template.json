@@ -1,0 +1,2 @@
+{ "nameAr": "حاسبة ضريبة القيمة المضافة 15٪", "descriptionAr": "تحسب الضريبة والسعر الشامل والسعر قبل الضريبة حسب نسبة 15٪ المعمول بها في السعودية.", "level": "beginner", "example": true,
+  "config": { "compiler": "mingw-gcc", "target": "windows-exe", "standard": "c++20", "outputName": "vat", "windowsSubsystem": "console" } }

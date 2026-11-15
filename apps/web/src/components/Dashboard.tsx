@@ -104,7 +104,7 @@ export function Dashboard({ user, onLogout }: { user: User; onLogout: () => void
           </div>
           <div className="flex flex-wrap gap-2">
             <a className="btn border-accent/60 text-accent" href="/run/">
-              <Zap size={16} /> ارفع ملفك وشغّله فوراً
+              <Zap size={16} /> ارفع ملفك وشغّله
             </a>
             <button className="btn btn-primary" onClick={() => setNewOpen(true)} disabled={busy}>
               <Plus size={16} /> مشروع جديد

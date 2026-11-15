@@ -1,0 +1,2 @@
+{ "nameAr": "لعبة خمّن الرقم", "descriptionAr": "الكمبيوتر يختار رقماً من 1 إلى 100 وأنت تخمّن — يعلّمك الحلقات والشروط والأرقام العشوائية.", "level": "beginner", "example": true,
+  "config": { "compiler": "mingw-gcc", "target": "windows-exe", "standard": "c++20", "outputName": "guess", "windowsSubsystem": "console" } }

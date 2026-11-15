@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { Zap } from "lucide-react";
 import { ApiError, api, type User } from "@/lib/api";
 import { Brand, Spinner, ThemeToggle } from "./common";
 
@@ -40,15 +41,23 @@ export function AuthScreen({ onAuthed }: { onAuthed: (u: User) => void }) {
       </header>
       <main className="mx-auto grid max-w-6xl gap-10 px-5 pb-16 pt-6 lg:grid-cols-[1.2fr_1fr] lg:pt-14">
         <section>
-          <p className="chip mb-4 border-accent/40 text-accent">بيئة تطوير C++ عربية في المتصفح</p>
+          <p className="chip mb-4 border-accent/40 text-accent">🇸🇦 استوديو C++ سعودي في متصفحك</p>
           <h1 className="text-3xl font-bold leading-[1.35] sm:text-5xl sm:leading-[1.3]">
-            اكتب C++، اضغط <span className="text-accent">بناء</span>، واحصل على
+            هلا! اكتب C++، اضغط <span className="text-accent">بناء</span>، وخذ
             <bdi dir="ltr" className="mx-2 font-mono text-teal">.exe</bdi>
             حقيقي.
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-8 text-ink-2">
-            لا Visual Studio ولا تثبيت. حرّر مشروعك من الجوال أو الكمبيوتر، ابنِه على خوادم معزولة، نزّل الملف التنفيذي أو شغّله وعاينه مباشرة.
+            بدون Visual Studio وبدون تثبيت. من جوالك أو كمبيوترك: ارفع ملفك، نبنيه لك، وتشغّله وتتحكم فيه على طول.
           </p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <a className="btn btn-primary px-5 py-3 text-base" href="/run/">
+              <Zap size={18} /> جرّب الحين بدون تسجيل
+            </a>
+            <a className="btn px-5 py-3 text-base" href="/learn/">
+              تعلّم C++ من الصفر
+            </a>
+          </div>
           <div className="mt-8 rounded-xl border border-line bg-surface p-4 font-mono text-[13px] leading-6" dir="ltr">
             <div className="text-ink-3">$ build --target windows-exe --std c++20</div>
             <div className="text-ink-2">x86_64-w64-mingw32-g++ main.cpp -o app.exe</div>
@@ -91,6 +100,22 @@ export function AuthScreen({ onAuthed }: { onAuthed: (u: User) => void }) {
               {busy && <Spinner />} {mode === "login" ? "دخول" : "إنشاء الحساب"}
             </button>
           </form>
+          <button
+            className="btn btn-ghost mt-3 w-full justify-center text-ink-2"
+            onClick={async () => {
+              setBusy(true);
+              try {
+                onAuthed((await api.guest()).user);
+              } catch (err) {
+                setError(err instanceof ApiError ? err.messageAr : "تعذّر الاتصال بالخادم");
+              } finally {
+                setBusy(false);
+              }
+            }}
+            disabled={busy}
+          >
+            أو كمّل كضيف بدون حساب
+          </button>
         </section>
       </main>
     </div>

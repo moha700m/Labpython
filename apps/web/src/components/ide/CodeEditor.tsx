@@ -147,15 +147,15 @@ export function CodeEditor({
       base: "vs-dark",
       inherit: true,
       rules: [
-        { token: "keyword", foreground: "f2b33d" },
+        { token: "keyword", foreground: "3dd68c" },
         { token: "string", foreground: "8bd49c" },
         { token: "number", foreground: "f39c6b" },
         { token: "comment", foreground: "5d6f82", fontStyle: "italic" },
-        { token: "type", foreground: "38d6b6" },
+        { token: "type", foreground: "e0bd6a" },
       ],
-      colors: { "editor.background": "#0d1218", "editorLineNumber.foreground": "#3b4a5c", "editor.lineHighlightBackground": "#151d26", "editorGutter.background": "#0d1218" },
+      colors: { "editor.background": "#0b1510", "editorLineNumber.foreground": "#3c5547", "editor.lineHighlightBackground": "#13201a", "editorGutter.background": "#0b1510" },
     });
-    monaco.editor.defineTheme("mcs-light", { base: "vs", inherit: true, rules: [{ token: "keyword", foreground: "a0610f" }], colors: { "editor.background": "#fbf9f4" } });
+    monaco.editor.defineTheme("mcs-light", { base: "vs", inherit: true, rules: [{ token: "keyword", foreground: "006c35" }], colors: { "editor.background": "#ffffff" } });
     monaco.editor.setTheme(theme === "dark" ? "mcs-dark" : "mcs-light");
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => actions.current.onSave());
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyB, () => actions.current.onBuild());

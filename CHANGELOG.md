@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.0 — 2026-11-15 — «ذكي، بسيط، سعودي»
+
+Informed by similar projects (Compiler Explorer and OnlineGDB share links without sign-in; Coddy's
+instant Arabic playground). What none of them offer — an Arabic-first platform that outputs a real
+Windows EXE — stays the core.
+
+### Added
+- One-tap guest sessions (`POST /api/auth/guest`): the `/run/` page and shared links work without an account.
+- Smart auto-fix (`packages/compiler/src/autofix.ts`, `POST /api/projects/:id/autofix`): missing headers
+  (+ `using namespace std;`), missing semicolons (both GCC location styles), `void main`, GUI/console
+  entry-point mismatch. Preview first, apply only on the user's tap, then rebuild — in `/run/` and the IDE.
+- Share links (`/share/?id=…`): immutable public snapshot of the code; "run it now" forks into the
+  visitor's own (guest) account and builds + runs it.
+- Saudi examples on `/run/`: VAT 15% calculator, zakat calculator, Gregorian→Hijri (tabular),
+  guess-the-number, electronic tasbeeh (Win32 GUI).
+- Saudi identity: green/gold theme (dark + light), friendly Saudi-dialect copy on the main flows.
+- Tests: autofix unit tests, guest/share security tests, autofix + examples integration tests,
+  3 new phone E2E steps (no account → example → input; broken file → auto-fix → run; share → visitor runs).
+
 ## 0.2.0 — 2026-11-15
 
 ### Added

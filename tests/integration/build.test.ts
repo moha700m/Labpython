@@ -132,3 +132,30 @@ d("real builds through API + Linux build worker", () => {
     expect(job.result.artifact.sha256).toMatch(/^[0-9a-f]{64}$/);
   });
 });
+
+d("smart auto-fix through the API", () => {
+  it("fixes a broken program so the next build succeeds", async () => {
+    const p = await c.project([{ path: "main.cpp", content: 'int main() {\n    std::string s = "x";\n    cout << s\n    return 0;\n}\n' }]);
+    const failed = await c.build(p, { compiler: "gcc", target: "linux-elf" });
+    expect(failed.status).toBe("failed");
+    const preview = await c.req("POST", `/api/projects/${p}/autofix`, { jobId: failed.id, apply: false });
+    expect(preview.body.fixes.length).toBeGreaterThan(0);
+    // Preview must not change files.
+    expect((await c.req("GET", `/api/projects/${p}/file?path=main.cpp`)).body.file.content).toContain("cout << s\n");
+    await c.req("POST", `/api/projects/${p}/autofix`, { jobId: failed.id, apply: true });
+    let job = await c.build(p, { compiler: "gcc", target: "linux-elf" });
+    if (job.status !== "succeeded") {
+      // A second pass may be needed when the first build hid follow-up errors.
+      await c.req("POST", `/api/projects/${p}/autofix`, { jobId: job.id, apply: true });
+      job = await c.build(p, { compiler: "gcc", target: "linux-elf" });
+    }
+    expect(job.status, job.log).toBe("succeeded");
+  });
+
+  it.each(["vat-calculator", "zakat-calculator", "hijri-date", "guess-game", "tasbeeh-gui"])("Saudi example %s builds into a PE32+ EXE", async (template) => {
+    const r = await c.req("POST", "/api/projects", { name: template, template });
+    const job = await c.build(r.body.project.id);
+    expect(job.status, job.log).toBe("succeeded");
+    expect(job.result.artifact.format).toBe("pe32+");
+  });
+});

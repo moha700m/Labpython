@@ -87,6 +87,17 @@ const MIGRATIONS: string[] = [
     last_seen_at TEXT NOT NULL
   );
   `,
+  `
+  CREATE TABLE shares (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    files_json TEXT NOT NULL,
+    config_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  ALTER TABLE users ADD COLUMN is_guest INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export function openDb(dataDir: string, file = "studio.db"): DB {

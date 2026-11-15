@@ -49,6 +49,8 @@ export interface TemplateInfo {
   nameAr: string;
   descriptionAr: string;
   level: "beginner" | "intermediate" | "pro";
+  /** Ready-to-run example shown on the quick-run page. */
+  example: boolean;
   config: Partial<BuildConfig>;
   files: ProjectFile[];
 }
@@ -77,7 +79,7 @@ export function loadTemplates(dir: string): TemplateInfo[] {
       }
     };
     walk(tdir);
-    out.push({ id, nameAr: info.nameAr, descriptionAr: info.descriptionAr, level: info.level, config: info.config, files });
+    out.push({ id, nameAr: info.nameAr, descriptionAr: info.descriptionAr, level: info.level, example: !!info.example, config: info.config, files });
   }
   return out;
 }
