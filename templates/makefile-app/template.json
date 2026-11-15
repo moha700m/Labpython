@@ -1,0 +1,2 @@
+{ "nameAr": "مشروع Makefile", "descriptionAr": "مشروع يُبنى عبر Makefile مع متغيرات CXX قابلة للتبديل.", "level": "pro",
+  "config": { "compiler": "mingw-gcc", "target": "windows-exe", "standard": "c++20", "kind": "make", "outputName": "make_app" } }

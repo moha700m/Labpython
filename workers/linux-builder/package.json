@@ -1,0 +1,16 @@
+{
+  "name": "@mcs/linux-builder",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "tsx src/index.ts", "start": "tsx src/index.ts", "typecheck": "tsc --noEmit -p ." },
+  "dependencies": {
+    "@mcs/compiler": "workspace:*",
+    "@mcs/localization": "workspace:*",
+    "@mcs/shared": "workspace:*",
+    "@mcs/worker-runtime": "workspace:*",
+    "tsx": "4.23.15",
+    "ws": "8.23.0"
+  },
+  "devDependencies": { "@types/ws": "^8.18.1" }
+}

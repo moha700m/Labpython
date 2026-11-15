@@ -1,0 +1,2 @@
+{ "nameAr": "مشروع متعدد الملفات", "descriptionAr": "آلة حاسبة مقسّمة إلى ملف ترويسة وملف تنفيذ وملف رئيسي.", "level": "intermediate",
+  "config": { "compiler": "mingw-gcc", "target": "windows-exe", "standard": "c++20", "outputName": "calculator", "windowsSubsystem": "console" } }

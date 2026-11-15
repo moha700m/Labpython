@@ -1,0 +1,29 @@
+{
+  "name": "muhammad-cpp-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Muhammad C++ Studio — منصة تطوير C++ عربية تعمل من المتصفح",
+  "license": "MIT",
+  "packageManager": "pnpm@10.18.0",
+  "engines": { "node": ">=22.12" },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter ./apps/* --filter ./workers/linux-builder dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:security": "vitest run tests/security",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "node tests/e2e/run-e2e.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/node": "22.20.5",
+    "eslint": "^9.39.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.2",
+    "vitest": "^3.2.4",
+    "tsx": "4.23.15"
+  }
+}

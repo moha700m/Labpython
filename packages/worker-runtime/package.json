@@ -1,0 +1,10 @@
+{
+  "name": "@mcs/worker-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc --noEmit -p ." },
+  "dependencies": { "@mcs/shared": "workspace:*", "@mcs/localization": "workspace:*", "ws": "8.23.0" },
+  "devDependencies": { "@types/ws": "^8.18.1" }
+}

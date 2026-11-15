@@ -1,0 +1,2 @@
+{ "nameAr": "مكتبة ساكنة", "descriptionAr": "مكتبة C++ ساكنة (.a) قابلة لإعادة الاستخدام.", "level": "pro",
+  "config": { "compiler": "mingw-gcc", "target": "windows-exe", "standard": "c++20", "output": "static-lib", "outputName": "mathx" } }

@@ -1,0 +1,2 @@
+{ "nameAr": "مشروع CMake", "descriptionAr": "مشروع احترافي بنظام CMake مع مكتبة داخلية ومجلد include.", "level": "pro",
+  "config": { "compiler": "mingw-gcc", "target": "windows-exe", "standard": "c++20", "kind": "cmake", "outputName": "cmake_app", "windowsSubsystem": "console" } }

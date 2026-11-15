@@ -1,0 +1,2 @@
+{ "nameAr": "تطبيق Console", "descriptionAr": "برنامج نصي بسيط يقرأ اسمك ويطبع ترحيباً — نقطة البداية المثالية.", "level": "beginner",
+  "config": { "compiler": "mingw-gcc", "target": "windows-exe", "standard": "c++20", "outputName": "hello", "windowsSubsystem": "console" } }

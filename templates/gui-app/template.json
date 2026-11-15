@@ -1,0 +1,2 @@
+{ "nameAr": "تطبيق واجهة Windows (Win32)", "descriptionAr": "نافذة Windows حقيقية بزر وعدّاد — تُعرض في المعاينة الحية عبر Windows Runner.", "level": "intermediate",
+  "config": { "compiler": "mingw-gcc", "target": "windows-exe", "standard": "c++20", "outputName": "gui_app", "windowsSubsystem": "windows" } }
