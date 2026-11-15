@@ -1,11 +1,28 @@
 # Changelog
 
+## 0.4.0 — 2026-11-15 — Windows app
+
+### Added
+- `apps/desktop`: Muhammad C++ Studio as a real Windows program (`MuhammadCppStudio-Setup.exe`, Inno Setup,
+  per-user install, no admin, no Docker). One Node process serves the UI on 127.0.0.1 and runs an
+  in-process worker that builds with the bundled native **w64devkit (MinGW-w64 GCC)** and **CMake**, and
+  runs programs **natively on Windows** — GUI programs open as real windows on the desktop.
+- Win32 launcher (`apps/desktop/launcher/launcher.cpp`, built with the bundled g++): starts the server
+  hidden, waits for `/api/health`, opens the browser, small Arabic control window; a Job Object stops
+  the server and everything it started when the window is closed; a second launch just opens the browser.
+- Sandbox mode `host` (desktop: timeouts, output caps, process-tree kill via `taskkill /T`), native MinGW
+  toolchain in the planner (`planBuild(..., { native: true })`, `MinGW Makefiles` for CMake).
+- `.github/workflows/desktop.yml`: on `windows-latest` fetches Node 22 + w64devkit + CMake, builds the
+  launcher, tests the packaged layout on real Windows (`tests/e2e/smoke.mjs` with `MCS_SMOKE_BACKEND=windows`:
+  console EXE with input, CMake project, GUI window started and stopped), builds Setup.exe and publishes
+  it as the latest GitHub release on `main`.
+
 ## 0.3.1 — 2026-11-15
 
 ### Added
 - Run the whole studio on your own computer: `Start-Studio.bat` / `Stop-Studio.bat` (Windows, Docker
   Desktop) and `start-studio.sh` (macOS/Linux). README download + double-click instructions.
-- `tests/e2e/docker-smoke.mjs` and a CI job that builds and starts the compose stack and checks that
+- `tests/e2e/smoke.mjs` and a CI job that builds and starts the compose stack and checks that
   all workers are online and a real EXE builds and runs.
 
 ### Fixed

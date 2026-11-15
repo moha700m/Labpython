@@ -100,7 +100,7 @@ jobs:
           printf 'MCS_WORKER_TOKEN=%s\nMCS_PORT=4000\n' "$(openssl rand -hex 32)" > .env
           docker compose -f infrastructure/docker/docker-compose.yml --env-file .env up -d --build
       - name: Smoke test (workers online, EXE builds and runs in the sandbox)
-        run: MCS_BASE_URL=http://127.0.0.1:4000 node tests/e2e/docker-smoke.mjs
+        run: MCS_BASE_URL=http://127.0.0.1:4000 node tests/e2e/smoke.mjs
       - if: failure()
         run: docker compose -f infrastructure/docker/docker-compose.yml --env-file .env logs --tail=100
 

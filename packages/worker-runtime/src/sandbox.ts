@@ -1,5 +1,6 @@
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
+import { join as joinPath } from "node:path";
 
 export interface SandboxLimits {
   timeoutMs: number;
@@ -47,7 +48,13 @@ export interface SandboxHandle {
   kill(): void;
 }
 
-export type SandboxMode = "bwrap" | "unsafe-none";
+/**
+ * - "bwrap": full isolation (server workers on Linux).
+ * - "host": the desktop app — the user runs their own code on their own PC, like any IDE does.
+ *   Timeouts, output caps and process-tree kill still apply; there is no namespace isolation.
+ * - "unsafe-none": local experiments on Linux without bubblewrap (never on a server).
+ */
+export type SandboxMode = "bwrap" | "host" | "unsafe-none";
 
 /** Minimal /etc entries a toolchain or Wine needs — never the whole /etc (shadow, keys...). */
 const ETC_ALLOW = [
@@ -57,6 +64,7 @@ const ETC_ALLOW = [
 
 export function detectSandboxMode(): SandboxMode {
   if (process.env.MCS_SANDBOX === "unsafe-none") return "unsafe-none";
+  if (process.env.MCS_SANDBOX === "host") return "host";
   // Probe with the same mounts real jobs use (/proc, /dev, /tmp) so a half-working setup — e.g. Docker
   // masking /proc — is reported at start-up instead of failing every build.
   const r = spawnSync(
@@ -123,16 +131,31 @@ export function prlimitArgs(l: SandboxLimits): string[] {
  */
 export function runSandboxed(opts: SandboxOptions, mode: SandboxMode): SandboxHandle {
   const start = Date.now();
-  const inner = [...prlimitArgs(opts.limits), ...opts.argv];
-  const child =
-    mode === "bwrap"
-      ? spawn("bwrap", [...buildBwrapArgs(opts), "--", ...inner], { stdio: [opts.stdin ? "pipe" : "ignore", "pipe", "pipe"], detached: true })
-      : spawn(inner[0]!, inner.slice(1), {
-          cwd: opts.workDir + "/" + (opts.cwd ?? ""),
-          env: { PATH: "/usr/local/bin:/usr/bin:/bin", HOME: "/tmp", LANG: "C.UTF-8", ...(opts.env ?? {}) },
-          stdio: [opts.stdin ? "pipe" : "ignore", "pipe", "pipe"],
-          detached: true,
-        });
+  const isWin = process.platform === "win32";
+  const stdio: ["pipe" | "ignore", "pipe", "pipe"] = [opts.stdin ? "pipe" : "ignore", "pipe", "pipe"];
+  let child: ChildProcess;
+  if (mode === "bwrap") {
+    child = spawn("bwrap", [...buildBwrapArgs(opts), "--", ...prlimitArgs(opts.limits), ...opts.argv], { stdio, detached: true });
+  } else if (mode === "host") {
+    // Desktop: inherit the user's environment (minus our secrets) so system DLLs/tools resolve.
+    const env: Record<string, string> = {};
+    for (const [k, v] of Object.entries(process.env)) if (v !== undefined && !/^(MCS_WORKER_TOKEN|ANTHROPIC_API_KEY)$/.test(k)) env[k] = v;
+    child = spawn(opts.argv[0]!, opts.argv.slice(1), {
+      cwd: joinPath(opts.workDir, opts.cwd && opts.cwd !== "." ? opts.cwd : ""),
+      env: { ...env, ...(opts.env ?? {}) },
+      stdio,
+      detached: !isWin,
+      windowsHide: true,
+    });
+  } else {
+    const inner = [...prlimitArgs(opts.limits), ...opts.argv];
+    child = spawn(inner[0]!, inner.slice(1), {
+      cwd: opts.workDir + "/" + (opts.cwd ?? ""),
+      env: { PATH: "/usr/local/bin:/usr/bin:/bin", HOME: "/tmp", LANG: "C.UTF-8", ...(opts.env ?? {}) },
+      stdio,
+      detached: true,
+    });
+  }
 
   let outBytes = 0;
   let truncated = false;
@@ -152,6 +175,11 @@ export function runSandboxed(opts: SandboxOptions, mode: SandboxMode): SandboxHa
   child.stderr?.on("data", handle(opts.onStderr));
 
   const killTree = () => {
+    if (isWin) {
+      // Kill the whole process tree (a program may start child processes).
+      if (child.pid) spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { windowsHide: true });
+      return;
+    }
     try {
       if (child.pid) process.kill(-child.pid, "SIGKILL");
     } catch {

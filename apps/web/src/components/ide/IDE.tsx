@@ -220,9 +220,10 @@ export function IDE({ projectId }: { projectId: string }) {
     const art = await ensureArtifact();
     if (!art) return;
     const isPe = art.format.startsWith("pe");
-    const backend = isPe ? "wine" : "native";
-    const display = isPe && config.windowsSubsystem === "windows";
-    if (isPe && !caps?.runBackends.wine) {
+    const nativeWin = isPe && !!caps?.runBackends.windows; // desktop app: run on this PC
+    const backend = !isPe ? "native" : nativeWin ? "windows" : "wine";
+    const display = isPe && !nativeWin && config.windowsSubsystem === "windows";
+    if (isPe && !nativeWin && !caps?.runBackends.wine) {
       toasts.push("لا يوجد Windows Runner متصل لتشغيل ملفات EXE. يمكنك تنزيل الملف وتشغيله على جهاز Windows.", "error");
       return;
     }
@@ -230,7 +231,7 @@ export function IDE({ projectId }: { projectId: string }) {
       toasts.push("لا يوجد عامل تشغيل Linux متصل.", "error");
       return;
     }
-    if (!confirm(isPe ? "سيتم تشغيل ملف EXE في Windows Runner معزول. متابعة؟" : "سيتم تشغيل البرنامج في بيئة Linux معزولة. متابعة؟")) return;
+    if (!nativeWin && !confirm(isPe ? "سيتم تشغيل ملف EXE في Windows Runner معزول. متابعة؟" : "سيتم تشغيل البرنامج في بيئة Linux معزولة. متابعة؟")) return;
     session?.close();
     try {
       const { job: runJob } = await api.startRun(project.id, art.id, backend, display);
@@ -238,6 +239,7 @@ export function IDE({ projectId }: { projectId: string }) {
       s.subscribe(() => force((x) => x + 1));
       setSession(s);
       setBottom(display ? "preview" : "terminal");
+      if (nativeWin && config.windowsSubsystem === "windows") toasts.push("فتحت نافذة البرنامج على سطح المكتب 🪟", "ok");
       setMobile("output");
     } catch (e) {
       toasts.push(e instanceof ApiError ? e.messageAr : "فشل بدء التشغيل", "error");

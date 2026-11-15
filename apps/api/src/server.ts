@@ -173,7 +173,7 @@ function registerAuthRoutes(app: FastifyInstance, ctx: Ctx) {
 
   app.get("/api/auth/me", async (req) => ({ user: req.user }));
 
-  app.get("/api/health", async () => ({ ok: true, time: new Date().toISOString() }));
+  app.get("/api/health", async () => ({ ok: true, app: "muhammad-cpp-studio", time: new Date().toISOString() }));
 
   app.get("/api/capabilities", async () => {
     const live = ctx.jobs.liveCapabilities();

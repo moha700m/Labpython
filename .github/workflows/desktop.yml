@@ -1,0 +1,117 @@
+name: Windows app
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, test on real Windows, package Setup.exe
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @mcs/web build
+      - run: pnpm --filter @mcs/desktop bundle
+
+      - name: Fetch Node.js runtime, w64devkit (MinGW-w64) and CMake
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $stage = "apps/desktop/dist/stage"
+          New-Item -ItemType Directory -Force "$stage/runtime" | Out-Null
+          $h = @{ Authorization = "Bearer $env:GH_TOKEN"; "User-Agent" = "mcs-ci" }
+
+          $v = (Invoke-RestMethod https://nodejs.org/dist/index.json | Where-Object { $_.version -like "v22.*" } | Select-Object -First 1).version
+          Write-Host "Node $v"
+          Invoke-WebRequest "https://nodejs.org/dist/$v/node-$v-win-x64.zip" -OutFile node.zip
+          Expand-Archive node.zip -DestinationPath nodetmp
+          Copy-Item "nodetmp/node-$v-win-x64/node.exe" "$stage/runtime/node.exe"
+          Copy-Item "nodetmp/node-$v-win-x64/LICENSE" "$stage/runtime/LICENSE.node.txt"
+
+          $rel = Invoke-RestMethod -Headers $h https://api.github.com/repos/skeeto/w64devkit/releases/latest
+          $asset = $rel.assets | Where-Object { $_.name -match '^w64devkit-(x64-)?[\d.]+\.(exe|7z\.exe|zip)$' } | Select-Object -First 1
+          Write-Host "w64devkit $($asset.name)"
+          Invoke-WebRequest $asset.browser_download_url -OutFile $asset.name
+          if ($asset.name -like "*.zip") { Expand-Archive $asset.name -DestinationPath . }
+          else { Start-Process -Wait -FilePath ".\$($asset.name)" -ArgumentList "-y", "-o$PWD" }
+          Move-Item w64devkit "$stage/mingw"
+
+          $rel = Invoke-RestMethod -Headers $h https://api.github.com/repos/Kitware/CMake/releases/latest
+          $asset = $rel.assets | Where-Object { $_.name -match 'windows-x86_64\.zip$' } | Select-Object -First 1
+          Write-Host "CMake $($asset.name)"
+          Invoke-WebRequest $asset.browser_download_url -OutFile cmake.zip
+          Expand-Archive cmake.zip -DestinationPath cmaketmp
+          Move-Item (Get-ChildItem cmaketmp | Select-Object -First 1).FullName "$stage/cmake"
+
+          Copy-Item -Recurse apps/desktop/dist/app "$stage/app"
+          Copy-Item LICENSE "$stage/LICENSE.txt"
+          Copy-Item apps/desktop/THIRD_PARTY.txt "$stage/THIRD_PARTY.txt"
+          & "$stage/mingw/bin/g++.exe" --version | Select-Object -First 1
+          & "$stage/cmake/bin/cmake.exe" --version | Select-Object -First 1
+
+      - name: Build the launcher with the bundled compiler
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $env:PATH = "$PWD\apps\desktop\dist\stage\mingw\bin;$env:PATH"
+          Push-Location apps/desktop/launcher
+          windres launcher.rc -O coff -o launcher.res.o
+          g++ -std=c++20 -O2 -Wall -municode -mwindows -static launcher.cpp launcher.res.o -o ..\dist\stage\MuhammadCppStudio.exe -lws2_32
+          Pop-Location
+          Get-Item apps/desktop/dist/stage/MuhammadCppStudio.exe
+
+      - name: Test the packaged studio on real Windows (build + native run, console + GUI + CMake)
+        shell: pwsh
+        run: |
+          $stage = (Resolve-Path apps/desktop/dist/stage).Path
+          $env:MCS_HOME = $stage
+          $env:MCS_DATA_DIR = "$env:RUNNER_TEMP\mcsdata"
+          $env:MCS_PORT = "47321"
+          $p = Start-Process -PassThru -WindowStyle Hidden -FilePath "$stage\runtime\node.exe" -ArgumentList "--disable-warning=ExperimentalWarning", "`"$stage\app\server.mjs`"" -RedirectStandardOutput server.log -RedirectStandardError server.err
+          $env:MCS_BASE_URL = "http://127.0.0.1:47321"
+          $env:MCS_SMOKE_BACKEND = "windows"
+          node tests/e2e/smoke.mjs
+          $code = $LASTEXITCODE
+          Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+          if ($code -ne 0) { Get-Content server.log, server.err -ErrorAction SilentlyContinue; exit $code }
+
+      - name: Package Setup.exe (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
+          $env:MCS_VERSION = "0.4.${{ github.run_number }}"
+          & $iscc apps/desktop/installer/studio.iss
+          Get-Item apps/desktop/dist/MuhammadCppStudio-Setup.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MuhammadCppStudio-Setup
+          path: apps/desktop/dist/MuhammadCppStudio-Setup.exe
+
+      - name: Publish release (main only)
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: desktop-v0.4.${{ github.run_number }}
+          name: Muhammad C++ Studio for Windows 0.4.${{ github.run_number }}
+          make_latest: "true"
+          body: |
+            ثبّت Muhammad C++ Studio على ويندوز: نزّل **MuhammadCppStudio-Setup.exe** وشغّله.
+            بدون Docker وبدون أي تثبيت إضافي — المترجم (MinGW-w64) وCMake مدمجة، والبرامج تشتغل على جهازك مباشرة.
+            Built and tested automatically on Windows (commit ${{ github.sha }}).
+          files: apps/desktop/dist/MuhammadCppStudio-Setup.exe

@@ -113,6 +113,9 @@ export function RunTerminal({ session }: { session: RunSession | null; theme?: "
         </div>
       )}
       <div ref={scroller} className="min-h-0 flex-1 overflow-auto px-3 py-2 font-mono text-[13px] leading-6 scroll-thin" onClick={() => inputRef.current?.focus()} role="log" aria-live="polite" aria-label="مخرجات البرنامج">
+        {session?.backend === "windows" && (
+          <p className="mb-2 font-sans text-xs text-teal">يشتغل على جهازك مباشرة — برامج الواجهة الرسومية تفتح كنافذة على سطح المكتب.</p>
+        )}
         {!session && <p className="font-sans text-sm text-ink-3">اضغط «تشغيل» (F5) لبدء البرنامج هنا. عندما يطلب البرنامج إدخالاً اكتبه في السطر بالأسفل واضغط Enter.</p>}
         {lines.map((l, i) => (
           <div key={i} dir="auto" className={`whitespace-pre-wrap break-words text-start ${color[l.kind]} ${l.kind.startsWith("status") ? "mt-1 font-sans text-xs" : ""}`} style={{ unicodeBidi: "plaintext" }}>

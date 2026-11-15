@@ -44,6 +44,15 @@ describe("planBuild", () => {
     expect(plan.generatedFiles[".mcs/toolchain.cmake"]).toContain("CMAKE_SYSTEM_NAME Windows");
     expect(plan.steps[0]!.argv).toContain("-DCMAKE_TOOLCHAIN_FILE=.mcs/toolchain.cmake");
   });
+  it("uses the native MinGW toolchain on Windows (desktop app)", () => {
+    const plan = planBuild(["main.cpp"], cfg, { native: true });
+    expect(plan.steps[0]!.argv[0]).toBe("g++");
+    expect(plan.steps.at(-1)!.argv).toContain("-static");
+    const cm = planBuild(["CMakeLists.txt", "main.cpp"], cfg, { native: true });
+    expect(cm.generatedFiles).toEqual({});
+    expect(cm.steps[0]!.argv).toContain("MinGW Makefiles");
+  });
+
   it("maps C++ standards", () => {
     expect(stdFlag("c++26", "gcc")).toBe("-std=c++2c");
     expect(stdFlag("c++20", "msvc")).toBe("/std:c++20");

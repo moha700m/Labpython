@@ -14,3 +14,5 @@ playwright-report/
 *.log
 .DS_Store
 OPEN_SITE.md
+apps/desktop/dist/
+apps/desktop/launcher/*.o

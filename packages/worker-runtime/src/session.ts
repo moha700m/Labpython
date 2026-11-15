@@ -29,7 +29,7 @@ export interface DisplaySession {
 export interface RunBackend {
   name: string;
   /** Returns the argv to execute inside the sandbox for the given artifact. */
-  command(artifactName: string, args: string[]): string[];
+  command(artifactName: string, args: string[], workDir: string): string[];
   env(): Record<string, string>;
   /** Address-space limit; Wine needs null (it reserves large ranges up front). */
   memoryBytes: number | null;
@@ -90,7 +90,7 @@ export async function executeRun(job: RunJob, api: WorkerApi, mode: SandboxMode,
       if (!backend.createDisplay) throw new Error("هذا المشغّل لا يدعم الواجهات الرسومية");
       display = await backend.createDisplay();
     }
-    const argv = backend.command(name, job.run.args.slice(0, 20));
+    const argv = backend.command(name, job.run.args.slice(0, 20), root);
     const ptyCmd = backend.pty ? ["script", "-q", "-e", "-f", "-c", "exec " + argv.map(shQuote).join(" "), "/dev/null"] : argv;
     const userEnv: Record<string, string> = {};
     for (const [k, v] of Object.entries(job.config.runEnv ?? {})) if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(k) && !/^(PATH|HOME|LD_|WINE)/.test(k)) userEnv[k] = v;

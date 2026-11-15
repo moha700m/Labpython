@@ -1,0 +1,13 @@
+Muhammad C++ Studio for Windows bundles these third-party components, unmodified:
+
+- Node.js (runtime\node.exe) — MIT License. https://nodejs.org  (license: runtime\LICENSE.node.txt)
+- w64devkit (mingw\) — portable MinGW-w64 C/C++ toolchain by Christopher Wellons, released into
+  the public domain (Unlicense); it contains GCC (GPLv3 with the GCC Runtime Library Exception),
+  GNU Binutils and GNU Make (GPLv3), MinGW-w64 runtime (ZPL/public domain) and BusyBox (GPLv2).
+  Sources: https://github.com/skeeto/w64devkit  — see mingw\COPYING / mingw\*LICENSE* files.
+- CMake (cmake\) — BSD 3-Clause License. https://cmake.org  (cmake\doc\cmake-*\Copyright.txt)
+
+Programs you compile are yours: the GCC Runtime Library Exception lets you distribute them under
+any license.
+
+The studio itself (app\, MuhammadCppStudio.exe) is MIT licensed — see LICENSE.

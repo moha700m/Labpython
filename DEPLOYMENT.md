@@ -30,7 +30,7 @@ Verified: the compose stack was built and started here (base image swapped for a
 Debian bookworm + Node 22 image because Docker Hub rate-limited this environment), and the full
 15-step Playwright E2E suite passed against it. The `.bat` launcher's control flow was checked under
 Wine's `cmd`; it has not been run on a real Windows machine. CI builds the real images and runs
-`tests/e2e/docker-smoke.mjs` against the compose stack on every push.
+`tests/e2e/smoke.mjs` against the compose stack on every push.
 
 Workers need `security_opt: seccomp=unconfined, apparmor=unconfined, systempaths=unconfined` —
 the last one lets bubblewrap mount a fresh `/proc` inside the container (Docker masks it otherwise,

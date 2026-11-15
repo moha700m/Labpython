@@ -1,0 +1,20 @@
+{
+  "name": "@mcs/desktop",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "description": "Muhammad C++ Studio for Windows: local server + native MinGW builds + native execution",
+  "scripts": {
+    "bundle": "node scripts/bundle.mjs",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@mcs/api": "workspace:*",
+    "@mcs/linux-builder": "workspace:*",
+    "@mcs/shared": "workspace:*",
+    "@mcs/worker-runtime": "workspace:*"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  }
+}

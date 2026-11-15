@@ -113,8 +113,23 @@ export function artifactFileName(config: BuildConfig): string {
  * Turn a project file list + build config into a concrete, deterministic list of argv
  * steps. No shell is ever involved: every step is executed with execve semantics.
  */
-export function planBuild(paths: string[], config: BuildConfig, opts: { jobs?: number } = {}): BuildPlan {
-  const toolchain = TOOLCHAINS[config.compiler];
+/**
+ * On a Windows host the MinGW-w64 toolchain is native: plain g++/gcc/ar/windres and no cross-compile
+ * CMake toolchain file. Used by the desktop app.
+ */
+export const NATIVE_WINDOWS_MINGW: Toolchain = {
+  id: "mingw-gcc",
+  labelAr: "MinGW-w64 GCC (Windows)",
+  target: "windows-exe",
+  cxx: "g++",
+  cc: "gcc",
+  ar: "ar",
+  windres: "windres",
+  platform: "windows",
+};
+
+export function planBuild(paths: string[], config: BuildConfig, opts: { jobs?: number; native?: boolean } = {}): BuildPlan {
+  const toolchain = opts.native && config.compiler === "mingw-gcc" ? NATIVE_WINDOWS_MINGW : TOOLCHAINS[config.compiler];
   if (!toolchain) throw new PlanError(`Unknown compiler ${config.compiler}`, "مترجم غير معروف");
   if (toolchain.target !== config.target) {
     throw new PlanError(
@@ -137,7 +152,7 @@ export function planBuild(paths: string[], config: BuildConfig, opts: { jobs?: n
   if (kind === "cmake") {
     const generated: Record<string, string> = {};
     const configure = [
-      "cmake", "-S", ".", "-B", "build", "-G", "Unix Makefiles",
+      "cmake", "-S", ".", "-B", "build", "-G", opts.native ? "MinGW Makefiles" : "Unix Makefiles",
       `-DCMAKE_BUILD_TYPE=${debug ? "Debug" : "Release"}`,
       `-DCMAKE_CXX_STANDARD=${config.standard.replace("c++", "")}`,
       "-DCMAKE_CXX_STANDARD_REQUIRED=ON",
@@ -148,6 +163,7 @@ export function planBuild(paths: string[], config: BuildConfig, opts: { jobs?: n
       configure.push("-DCMAKE_TOOLCHAIN_FILE=.mcs/toolchain.cmake");
     } else {
       configure.push(`-DCMAKE_CXX_COMPILER=${toolchain.cxx}`, `-DCMAKE_C_COMPILER=${toolchain.cc}`);
+      if (opts.native) configure.push("-DCMAKE_MAKE_PROGRAM=make", '-DCMAKE_EXE_LINKER_FLAGS_INIT=-static');
     }
     if (extra.length) configure.push(`-DCMAKE_CXX_FLAGS=${extra.join(" ")}`);
     if (link.length) configure.push(`-DCMAKE_EXE_LINKER_FLAGS=${link.join(" ")}`);

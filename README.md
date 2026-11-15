@@ -8,17 +8,21 @@
 
 ![IDE](docs/screenshots/05-run-terminal.png)
 
-## 💻 نزّل الاستديو كامل على كمبيوترك (ويندوز)
+## 💻 برنامج ويندوز كامل (Setup.exe)
 
-1. ثبّت **Docker Desktop** من https://www.docker.com/products/docker-desktop/ وشغّله (لو طلب تفعيل WSL 2 وافق وأعد تشغيل الجهاز). انتظر لين يكتب **Engine running**.
-2. نزّل المشروع: **[Labpython-main.zip](https://github.com/moha700m/Labpython/archive/refs/heads/main.zip)** وفك الضغط.
-3. ادخل المجلد واضغط **دبل كليك على `Start-Studio.bat`**.
-4. أول مرة ياخذ **10–20 دقيقة** (ينزّل المترجمات وWine، حوالي 3–5 جيجا). بعدها يفتح لك المتصفح على **http://localhost:4000/run/** تلقائياً، والمرات الجاية ثواني.
-5. للإيقاف: دبل كليك على **`Stop-Studio.bat`**.
+### ⬇️ [تنزيل MuhammadCppStudio-Setup.exe](https://github.com/moha700m/Labpython/releases/latest/download/MuhammadCppStudio-Setup.exe)
 
-ماك ولينكس: نفس الشي بس شغّل `./start-studio.sh` (وللإيقاف `./start-studio.sh stop`).
+1. نزّل الملف وشغّله (لو طلعت «Windows protected your PC» اضغط **More info ← Run anyway** — الملف غير موقّع رقمياً).
+2. Next ← Install. ما يحتاج صلاحيات مدير، ولا Docker، ولا أي تثبيت ثاني.
+3. يفتح الاستديو في المتصفح تلقائياً، ويطلع لك أيقونة **Muhammad C++ Studio** على سطح المكتب.
 
-كل شي يشتغل على جهازك: البناء والتشغيل والمعاينة داخل حاويات معزولة. ملفات EXE تنزلها من زر «تنزيل EXE» وتشغّلها على ويندوز مباشرة.
+داخل البرنامج: مترجم **MinGW-w64 (GCC)** و**CMake** مدمجين، والبرامج اللي تبنيها **تشتغل على جهازك مباشرة** — برامج الواجهات تفتح كنافذة ويندوز حقيقية. للإغلاق: زر «إيقاف وإغلاق» في نافذة الاستديو الصغيرة.
+
+> كل نسخة تُبنى وتُختبر تلقائياً على ويندوز حقيقي في GitHub Actions قبل نشرها (بناء EXE، CMake، تشغيل Console وواجهة رسومية).
+
+### بديل: الاستديو كامل عبر Docker (ويندوز / ماك / لينكس)
+
+ثبّت **Docker Desktop**، نزّل **[Labpython-main.zip](https://github.com/moha700m/Labpython/archive/refs/heads/main.zip)**، فك الضغط، ودبل كليك على **`Start-Studio.bat`** (ماك/لينكس: `./start-studio.sh`). يفتح على **http://localhost:4000/run/**، وللإيقاف **`Stop-Studio.bat`**.
 
 ## 🚀 شغّل المنصة على GitHub بضغطة واحدة
 

@@ -65,12 +65,16 @@ export function QuickRun() {
   const startRun = async (p: Project, artifactId: string) => {
     const gui = p.config.windowsSubsystem === "windows";
     const latestCaps = caps ?? (await api.capabilities().catch(() => null));
-    if (!latestCaps?.runBackends.wine) {
+    // Desktop app on Windows: run natively (GUI windows open on the user's desktop).
+    const native = !!latestCaps?.runBackends.windows;
+    if (!native && !latestCaps?.runBackends.wine) {
       setError("الملف جاهز للتنزيل، لكن ما فيه Windows Runner متصل الحين لتشغيله هنا.");
       return;
     }
-    const { job: run } = await api.startRun(p.id, artifactId, "wine", gui);
-    const s = new RunSession(run.id, gui, "wine");
+    const backend = native ? "windows" : "wine";
+    const display = gui && !native;
+    const { job: run } = await api.startRun(p.id, artifactId, backend, display);
+    const s = new RunSession(run.id, display, backend);
     s.subscribe(() => force((x) => x + 1));
     setSession(s);
     setStage("running");
@@ -301,7 +305,7 @@ export function QuickRun() {
                     <Download size={15} /> تنزيل EXE
                   </a>
                 )}
-                {art && !session?.active && caps?.runBackends.wine && (
+                {art && !session?.active && (caps?.runBackends.wine || caps?.runBackends.windows) && (
                   <button className="btn" onClick={rerun}>
                     <Play size={15} className="text-ok" /> شغّل مرة ثانية
                   </button>
@@ -336,7 +340,7 @@ export function QuickRun() {
               </div>
               <div className="min-h-0 flex-1">
                 {stage === "running" && session ? (
-                  gui ? <PreviewPanel session={session} /> : <RunTerminal session={session} />
+                  gui && session.display ? <PreviewPanel session={session} /> : <RunTerminal session={session} />
                 ) : (
                   <div className="h-full overflow-auto p-3 font-mono text-[12.5px] leading-5 text-ink-2 scroll-thin" role="log" aria-label="سجل البناء">
                     {diags.filter((d) => d.severity === "error").map((d, i) => (

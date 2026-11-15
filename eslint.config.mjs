@@ -3,7 +3,7 @@ import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 
 export default tseslint.config(
-  { ignores: ["**/node_modules/**", "**/.next/**", "**/out/**", "**/dist/**", "apps/web/public/**", "apps/web/next-env.d.ts", "coverage/**"] },
+  { ignores: ["**/node_modules/**", "apps/desktop/dist/**", "**/.next/**", "**/out/**", "**/dist/**", "apps/web/public/**", "apps/web/next-env.d.ts", "coverage/**"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   { files: ["apps/web/**/*.tsx"], plugins: { "react-hooks": reactHooks }, rules: { "react-hooks/rules-of-hooks": "error", "react-hooks/exhaustive-deps": "warn" } },

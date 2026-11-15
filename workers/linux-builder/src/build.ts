@@ -1,5 +1,5 @@
 import { mkdtemp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname, join, relative, isAbsolute } from "node:path";
 import { PlanError, countBySeverity, parseDiagnostics, pickArtifact, planBuild, type BuildPlan } from "@mcs/compiler";
 import { LIMITS, base64ToBytes, detectBinaryFormat, normalizeProjectPath, type BuildConfig, type BuildResult, type ProjectFile } from "@mcs/shared";
 import { formatBytesAr, formatDurationAr } from "@mcs/localization";
@@ -17,7 +17,8 @@ export async function materialize(root: string, files: ProjectFile[]) {
   for (const f of files) {
     const rel = normalizeProjectPath(f.path);
     const full = join(root, rel);
-    if (!full.startsWith(root + "/")) throw new Error(`path escapes work dir: ${f.path}`);
+    const back = relative(root, full);
+    if (!back || back.startsWith("..") || isAbsolute(back)) throw new Error(`path escapes work dir: ${f.path}`);
     await mkdir(dirname(full), { recursive: true });
     await writeFile(full, f.encoding === "base64" ? base64ToBytes(f.content) : f.content);
   }
@@ -34,13 +35,13 @@ async function walk(dir: string, base = dir, out: { path: string; size: number; 
       const st = await stat(full);
       if (st.size < 64 || st.size > 512 * 1024 * 1024) continue;
       const fh = await readFile(full).then((b) => b.subarray(0, 4096));
-      out.push({ path: full.slice(base.length + 1), size: st.size, mtimeMs: st.mtimeMs, format: detectBinaryFormat(new Uint8Array(fh)) });
+      out.push({ path: relative(base, full).split("\\").join("/"), size: st.size, mtimeMs: st.mtimeMs, format: detectBinaryFormat(new Uint8Array(fh)) });
     }
   }
   return out;
 }
 
-export async function executeBuild(job: BuildJob, api: WorkerApi, mode: SandboxMode, opts: { keepWorkDir?: boolean } = {}): Promise<BuildResult> {
+export async function executeBuild(job: BuildJob, api: WorkerApi, mode: SandboxMode, opts: { keepWorkDir?: boolean; native?: boolean } = {}): Promise<BuildResult> {
   const started = Date.now();
   const ev = new EventBatcher(api, job.id);
   const root = await mkdtemp(join(workRoot(), "mcs-build-"));
@@ -67,7 +68,7 @@ export async function executeBuild(job: BuildJob, api: WorkerApi, mode: SandboxM
     await materialize(root, job.files);
     let plan: BuildPlan;
     try {
-      plan = planBuild(job.files.map((f) => normalizeProjectPath(f.path)), job.config, { jobs: 4 });
+      plan = planBuild(job.files.map((f) => normalizeProjectPath(f.path)), job.config, { jobs: 4, native: opts.native });
     } catch (e) {
       const msg = e instanceof PlanError ? e.messageAr : (e as Error).message;
       ev.log(`✖ ${msg}\n`);
