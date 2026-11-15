@@ -77,6 +77,17 @@ pnpm --filter @mcs/web build → static export OK
 
 لقطات الشاشة من تشغيل E2E: `docs/screenshots/`.
 
+## 3.1 برنامج ويندوز (Setup.exe) — 0.4.0
+
+- التنزيل: https://github.com/moha700m/Labpython/releases/latest/download/MuhammadCppStudio-Setup.exe (~119 MB)
+- يُبنى ويُختبر تلقائياً على `windows-latest` في GitHub Actions (`.github/workflows/desktop.yml`):
+  Node 22 + w64devkit (GCC 16.2) + CMake مدمجة، المُشغّل يُبنى بالـ g++ المدمج، ثم `tests/e2e/smoke.mjs`
+  على ويندوز حقيقي: بناء EXE وتشغيله أصلياً مع إدخال (100 ← 115.00)، مشروع CMake، وبرنامج واجهة رسومية
+  يشتغل كنافذة ويُوقف من المتصفح — **نجح** (run 43708054723)، ثم Inno Setup ونشر الإصدار.
+- مُختبر هنا: حزمة الخادم تعمل كملف واحد، والمُشغّل يُترجم بلا تحذيرات ويكتشف الاستديو الشغّال (تحت Wine).
+- **لم يُختبر**: تثبيت Setup.exe بالنقر على جهاز مستخدم حقيقي (الواجهة الرسومية للمثبّت والمُشغّل).
+- على سطح المكتب لا يوجد عزل bubblewrap: الكود كود المستخدم على جهازه (مثل أي IDE)؛ تبقى المهلات وحدود المخرجات وإنهاء شجرة العمليات.
+
 ## 4. حدود معروفة (بصراحة)
 
 1. **Windows Runner = Wine** على Linux، وليس Windows حقيقياً. ملفات EXE أصلية، لكن بعض واجهات Windows غير مدعومة في Wine.
