@@ -27,12 +27,12 @@ pkill -f "apps/api/src/index.ts" 2>/dev/null; pkill -f "linux-builder/src/index.
 sleep 1
 [ -d "$ROOT/apps/web/out" ] || pnpm --filter @mcs/web build
 
-nohup "$ROOT/node_modules/.bin/tsx" apps/api/src/index.ts > "$LOGS/mcs-api.log" 2>&1 &
+setsid nohup "$ROOT/node_modules/.bin/tsx" apps/api/src/index.ts > "$LOGS/mcs-api.log" 2>&1 &
 for i in $(seq 1 50); do curl -fs http://127.0.0.1:4000/api/health >/dev/null && break; sleep 0.3; done
 
 export MCS_API_URL=http://127.0.0.1:4000
-nohup "$ROOT/node_modules/.bin/tsx" workers/linux-builder/src/index.ts > "$LOGS/mcs-linux-builder.log" 2>&1 &
-nohup "$ROOT/node_modules/.bin/tsx" workers/windows-runner/src/index.ts > "$LOGS/mcs-windows-runner.log" 2>&1 &
+setsid nohup "$ROOT/node_modules/.bin/tsx" workers/linux-builder/src/index.ts > "$LOGS/mcs-linux-builder.log" 2>&1 &
+setsid nohup "$ROOT/node_modules/.bin/tsx" workers/windows-runner/src/index.ts > "$LOGS/mcs-windows-runner.log" 2>&1 &
 sleep 4
 
 # Make the site reachable without a GitHub login (best effort; the owner can always open it).
@@ -40,10 +40,13 @@ if [ -n "${CODESPACE_NAME:-}" ] && command -v gh >/dev/null; then
   gh codespace ports visibility 4000:public -c "$CODESPACE_NAME" >/dev/null 2>&1 || true
 fi
 
-echo "Workers: $(curl -fs http://127.0.0.1:4000/api/capabilities | sed -E 's/.*"workers":\[([^]]*)\].*/\1/')"
+WORKERS=$(curl -fs http://127.0.0.1:4000/api/capabilities | sed -E 's/.*"workers":\[([^]]*)\].*/\1/' || true)
 if [ -n "${CODESPACE_NAME:-}" ]; then
-  echo "✔ Muhammad C++ Studio: https://${CODESPACE_NAME}-4000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}/run/"
+  URL="https://${CODESPACE_NAME}-4000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}/run/"
 else
-  echo "✔ Muhammad C++ Studio: http://localhost:4000/run/"
+  URL="http://localhost:4000/run/"
 fi
+bash "$ROOT/.devcontainer/write-link.sh" "$URL" "$WORKERS"
+echo "Workers: $WORKERS"
+echo "✔ Muhammad C++ Studio: $URL"
 echo "  Logs: $LOGS/mcs-*.log"

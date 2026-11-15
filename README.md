@@ -10,11 +10,14 @@
 
 ## 🚀 شغّل المنصة على GitHub بضغطة واحدة
 
-1. اضغط زر **Open in GitHub Codespaces** أعلاه (أو: Code ← Codespaces ← Create codespace on main).
-2. انتظر الإعداد أول مرة (تثبيت المترجمات وWine وبناء الواجهة — عدة دقائق).
-3. يُفتح الموقع تلقائياً على المنفذ 4000. افتح **`/run/`**: اسحب ملف `.cpp` أو `.zip` ← يُبنى EXE حقيقي ← يشتغل أمامك (طرفية تفاعلية أو نافذة حية تتحكم فيها) ← نزّل EXE.
+1. اضغط زر **Open in GitHub Codespaces** أعلاه، ثم **Create codespace**.
+2. انتظر أول مرة 5–8 دقائق (يثبّت المترجمات وWine ويبني الموقع). لا تقفل الصفحة.
+3. بيفتح لك تلقائياً ملف **«👇 اضغط الرابط لفتح الموقع»** — اضغط الرابط الأخضر.
+4. إذا طلب تسجيل دخول GitHub سجّل، وبيفتح لك الموقع على صفحة `/run/`.
 
-الرابط يكون بالشكل `https://<اسم-الـcodespace>-4000.app.github.dev/run/` (يُطبع أيضاً في الطرفية). Codespaces مجاني ضمن الحصة الشهرية لحسابك ويتوقف تلقائياً عند الخمول؛ لإعادة التشغيل يكفي فتح الـ Codespace من جديد، أو تنفيذ `bash .devcontainer/start.sh`.
+**من الجوال:** نفس الخطوات. ولو ما شفت الملف: القائمة ☰ ← Terminal ← New Terminal، واكتب `bash .devcontainer/start.sh`، والرابط يطلع في آخر سطر.
+
+**المرة الجاية:** من https://github.com/codespaces افتح نفس الـ Codespace، والموقع يشتغل لحاله خلال ثواني. الـ Codespace مجاني ضمن حصة حسابك الشهرية، ويطفي لحاله إذا ما استخدمته فترة.
 
 <p align="center"><img src="docs/screenshots/14-mobile-run-examples.png" width="260" alt="ارفع وشغّل من الجوال"> <img src="docs/screenshots/16-mobile-autofix.png" width="260" alt="إصلاح تلقائي"> <img src="docs/screenshots/15-mobile-vat.png" width="260" alt="حاسبة الضريبة"></p>
 

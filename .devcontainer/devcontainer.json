@@ -3,15 +3,18 @@
   "image": "mcr.microsoft.com/devcontainers/typescript-node:22-bookworm",
   // bubblewrap needs user namespaces to isolate user code; Codespaces allows this with privileged containers.
   "privileged": true,
-  "hostRequirements": { "cpus": 4, "memory": "8gb" },
+  "hostRequirements": { "cpus": 2, "memory": "4gb" },
   "forwardPorts": [4000],
   "portsAttributes": {
-    "4000": { "label": "Muhammad C++ Studio", "onAutoForward": "openBrowser" }
+    "4000": { "label": "Muhammad C++ Studio", "onAutoForward": "notify" }
   },
   "postCreateCommand": "bash .devcontainer/setup.sh",
   "postStartCommand": "bash .devcontainer/start.sh",
   "customizations": {
-    "codespaces": { "openFiles": ["README.md"] },
-    "vscode": { "extensions": ["dbaeumer.vscode-eslint"] }
+    "codespaces": { "openFiles": ["OPEN_SITE.md"] },
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint"],
+      "settings": { "workbench.editorAssociations": { "OPEN_SITE.md": "vscode.markdown.preview.editor" } }
+    }
   }
 }

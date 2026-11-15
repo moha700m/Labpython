@@ -15,3 +15,4 @@ corepack enable >/dev/null 2>&1 || sudo corepack enable
 pnpm install --frozen-lockfile
 pnpm --filter @mcs/web build
 echo "✔ setup complete"
+bash .devcontainer/write-link.sh "" ""
