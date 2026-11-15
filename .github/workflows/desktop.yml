@@ -35,7 +35,9 @@ jobs:
           New-Item -ItemType Directory -Force "$stage/runtime" | Out-Null
           $h = @{ Authorization = "Bearer $env:GH_TOKEN"; "User-Agent" = "mcs-ci" }
 
-          $v = (Invoke-RestMethod https://nodejs.org/dist/index.json | Where-Object { $_.version -like "v22.*" } | Select-Object -First 1).version
+          # Invoke-RestMethod returns the JSON array as one pipeline object: enumerate the versions explicitly.
+          $index = Invoke-RestMethod https://nodejs.org/dist/index.json
+          $v = @($index.version | Where-Object { $_ -like "v22.*" })[0]
           Write-Host "Node $v"
           Invoke-WebRequest "https://nodejs.org/dist/$v/node-$v-win-x64.zip" -OutFile node.zip
           Expand-Archive node.zip -DestinationPath nodetmp
