@@ -28,6 +28,13 @@ const STD_HEADERS: Record<string, string> = {
 
 const RULES: Rule[] = [
   {
+    test: /unrecognized command[- ]line option ['‘]?-std=c\+\+(2c|26)|invalid value ['‘]c\+\+(2c|26)/,
+    explain: () => ({
+      explanationAr: "هذا المترجم لا يدعم معيار C++26 بعد (يتطلب GCC 14 أو Clang 17 فأحدث).",
+      suggestionAr: "اختر معيار C++23 من إعدادات البناء، أو استخدم مترجم Clang لتجربة ميزات C++26.",
+    }),
+  },
+  {
     test: /['‘`«]?(\w+)['’`»]? is not a member of ['‘`]?std['’`]?|no member named '(\w+)' in namespace 'std'/,
     explain: (m) => {
       const name = m[1] ?? m[2];

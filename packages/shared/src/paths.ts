@@ -17,7 +17,6 @@ const WINDOWS_RESERVED = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
 export function normalizeProjectPath(input: string): string {
   if (typeof input !== "string" || input.length === 0) throw new UnsafePathError(String(input), "empty");
   if (input.includes("\0")) throw new UnsafePathError(input, "NUL byte");
-  // eslint-disable-next-line no-control-regex
   if (/[\x00-\x1f\x7f]/.test(input)) throw new UnsafePathError(input, "control character");
   const unified = input.replace(/\\/g, "/");
   if (unified.startsWith("/")) throw new UnsafePathError(input, "absolute path");

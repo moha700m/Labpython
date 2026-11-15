@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, typecheck, unit tests, web build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:unit
+      - run: pnpm build:web
+
+  sandbox:
+    name: Security + integration (real compilers, sandbox, Wine)
+    runs-on: ubuntu-24.04
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - name: Install toolchains and sandbox
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends bubblewrap g++ clang cmake make \
+            g++-mingw-w64-x86-64-posix gcc-mingw-w64-x86-64-posix binutils-mingw-w64-x86-64 \
+            wine wine64 xvfb xdotool imagemagick
+          # Ubuntu 24.04 restricts unprivileged user namespaces, which bubblewrap needs.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:security
+      - run: pnpm test:integration
+
+  e2e:
+    name: End-to-end UI (Playwright)
+    runs-on: ubuntu-24.04
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - name: Install toolchains and sandbox
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends bubblewrap g++ clang cmake make clang-format \
+            g++-mingw-w64-x86-64-posix gcc-mingw-w64-x86-64-posix binutils-mingw-w64-x86-64 \
+            wine wine64 xvfb xdotool imagemagick
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build:web
+      - name: Install Playwright (outside the pnpm workspace)
+        run: |
+          npm i --prefix "$RUNNER_TEMP/pw" playwright@1.55.0
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Start stack
+        run: |
+          export MCS_DATA_DIR=$RUNNER_TEMP/data PORT=4100 MCS_WEB_DIR=apps/web/out MCS_WORKER_TOKEN=ci-$(openssl rand -hex 16)
+          nohup node_modules/.bin/tsx apps/api/src/index.ts > api.log 2>&1 &
+          sleep 3
+          MCS_API_URL=http://127.0.0.1:4100 nohup node_modules/.bin/tsx workers/linux-builder/src/index.ts > lb.log 2>&1 &
+          MCS_API_URL=http://127.0.0.1:4100 nohup node_modules/.bin/tsx workers/windows-runner/src/index.ts > wr.log 2>&1 &
+          sleep 5
+      - run: NODE_PATH="$RUNNER_TEMP/pw/node_modules" MCS_BASE_URL=http://127.0.0.1:4100 node tests/e2e/run-e2e.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots-and-logs
+          path: |
+            docs/screenshots
+            *.log
+
+  docker:
+    name: Docker images build
+    runs-on: ubuntu-24.04
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f infrastructure/docker/api.Dockerfile -t mcs-api .
+      - run: docker build -f infrastructure/docker/linux-builder.Dockerfile -t mcs-linux-builder .
+
+  deploy:
+    name: Deploy (main only, opt-in)
+    runs-on: ubuntu-24.04
+    needs: [sandbox, e2e, docker]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    steps:
+      - name: Trigger deployment hook if configured
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$DEPLOY_HOOK_URL" ]; then
+            echo "No DEPLOY_HOOK_URL secret configured — skipping deployment (see DEPLOYMENT.md)."
+            exit 0
+          fi
+          curl -fsS -X POST "$DEPLOY_HOOK_URL"

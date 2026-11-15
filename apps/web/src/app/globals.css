@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+/* Theme tokens. Dark is the default; light is opt-in via data-theme="light". */
+:root {
+  --bg: #0a0e13;
+  --surface: #10161d;
+  --surface-2: #151d26;
+  --surface-3: #1b2530;
+  --line: #233040;
+  --line-strong: #2f3f52;
+  --text: #e6edf3;
+  --text-2: #9fb0c2;
+  --text-3: #6b7d90;
+  --accent: #f2b33d; /* brass — the studio's signature */
+  --accent-ink: #1a1306;
+  --accent-soft: rgba(242, 179, 61, 0.12);
+  --teal: #38d6b6;
+  --danger: #ff6b6b;
+  --warn: #f5c451;
+  --info: #6cb6ff;
+  --ok: #3fd18a;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #f4f1ea;
+  --surface: #fbf9f4;
+  --surface-2: #f1ede4;
+  --surface-3: #e7e1d4;
+  --line: #ddd5c4;
+  --line-strong: #c9bfa9;
+  --text: #1d232b;
+  --text-2: #4c5866;
+  --text-3: #7a8592;
+  --accent: #b7791f;
+  --accent-ink: #fffaf0;
+  --accent-soft: rgba(183, 121, 31, 0.12);
+  --teal: #0f9b84;
+  --danger: #c93c3c;
+  --warn: #a8740a;
+  --info: #2a6fb5;
+  --ok: #1e8a55;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--text);
+  --color-ink-2: var(--text-2);
+  --color-ink-3: var(--text-3);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-teal: var(--teal);
+  --color-danger: var(--danger);
+  --color-warn: var(--warn);
+  --color-info: var(--info);
+  --color-ok: var(--ok);
+  --font-sans: var(--font-arabic), "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-code), ui-monospace, "Cascadia Code", Menlo, monospace;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+/* Full-height app shell that respects iOS Safari's dynamic toolbars. */
+.app-h {
+  height: 100vh;
+  height: 100dvh;
+}
+.safe-b {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.code,
+code,
+pre {
+  font-family: var(--font-mono);
+}
+::selection {
+  background: var(--accent-soft);
+}
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.grid-paper {
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+@layer components {
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  transition: background 0.12s, border-color 0.12s, opacity 0.12s;
+  white-space: nowrap;
+}
+.btn:hover:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--line-strong);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn:focus-visible,
+.field:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent);
+  filter: brightness(1.08);
+}
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.field {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0.5rem 0.7rem;
+  font-size: 0.9rem;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  font-size: 0.72rem;
+  border: 1px solid var(--line);
+  color: var(--text-2);
+}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

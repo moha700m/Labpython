@@ -357,7 +357,8 @@ function registerProjectRoutes(app: FastifyInstance, ctx: Ctx) {
       p.on("error", reject);
       p.on("close", (code) => {
         clearTimeout(timer);
-        code === 0 ? resolveP(out) : reject(new Error("clang-format failed"));
+        if (code === 0) resolveP(out);
+        else reject(new Error("clang-format failed"));
       });
       p.stdin.end(body.content);
     }).catch(() => null);

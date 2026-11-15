@@ -17,7 +17,8 @@ function run(cmd: string, args: string[], env: NodeJS.ProcessEnv, timeoutMs = 30
     p.on("error", reject);
     p.on("close", (code) => {
       clearTimeout(t);
-      code === 0 ? resolve(Buffer.concat(chunks)) : reject(new Error(`${cmd} exited ${code}`));
+      if (code === 0) resolve(Buffer.concat(chunks));
+      else reject(new Error(`${cmd} exited ${code}`));
     });
   });
 }

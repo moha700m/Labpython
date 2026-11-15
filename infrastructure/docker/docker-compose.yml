@@ -1,0 +1,47 @@
+# Local/single-host deployment. Secrets come from the environment / an .env file that is never committed.
+#   MCS_WORKER_TOKEN=$(openssl rand -hex 32) docker compose -f infrastructure/docker/docker-compose.yml up --build
+services:
+  api:
+    build: { context: ../.., dockerfile: infrastructure/docker/api.Dockerfile }
+    ports: ["4000:4000"]
+    environment:
+      MCS_WORKER_TOKEN: ${MCS_WORKER_TOKEN:?set MCS_WORKER_TOKEN}
+      MCS_COOKIE_SECURE: ${MCS_COOKIE_SECURE:-0}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes: ["studio-data:/data"]
+    networks: [default, workers]
+    restart: unless-stopped
+
+  linux-builder:
+    build: { context: ../.., dockerfile: infrastructure/docker/linux-builder.Dockerfile }
+    environment:
+      MCS_API_URL: http://api:4000
+      MCS_WORKER_TOKEN: ${MCS_WORKER_TOKEN}
+    # bubblewrap needs user namespaces inside the container.
+    security_opt: ["seccomp=unconfined", "apparmor=unconfined"]
+    cap_drop: ["ALL"]
+    pids_limit: 512
+    mem_limit: 4g
+    cpus: 2
+    networks: [workers]
+    restart: unless-stopped
+
+  windows-runner:
+    build: { context: ../.., dockerfile: infrastructure/docker/windows-runner.Dockerfile }
+    environment:
+      MCS_API_URL: http://api:4000
+      MCS_WORKER_TOKEN: ${MCS_WORKER_TOKEN}
+    security_opt: ["seccomp=unconfined", "apparmor=unconfined"]
+    cap_drop: ["ALL"]
+    pids_limit: 512
+    mem_limit: 4g
+    cpus: 2
+    networks: [workers]
+    restart: unless-stopped
+
+networks:
+  workers: {}
+  default: {}
+
+volumes:
+  studio-data: {}

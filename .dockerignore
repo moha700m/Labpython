@@ -1,0 +1,9 @@
+**/node_modules
+**/.next
+apps/web/out
+apps/web/public/monaco
+.data
+.git
+coverage
+test-results
+docs/screenshots

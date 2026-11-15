@@ -7,6 +7,8 @@ const GNU_RE = /^(.+?):(\d+):(?:(\d+):)? (fatal error|error|warning|note): (.*)$
 const MSVC_RE = /^(.+?)\((\d+)(?:,(\d+))?\): (fatal error|error|warning|note) ?([A-Z]+\d+)?: (.*)$/;
 // GNU ld / lld style: path:(.text+0x..): undefined reference to `x'  or  /usr/bin/ld: ...
 const LD_RE = /^(?:.*?[\\/])?(?:[\w.-]+-)?(?:ld(?:\.lld|\.bfd|\.gold)?|collect2)(?:\.exe)?: (?:error: )?(.*)$/;
+// Compiler driver errors without a location: "g++: error: unrecognized command-line option ..."
+const DRIVER_RE = /^([\w.+-]*(?:g\+\+|gcc|clang\+\+|clang|cc1plus|c\+\+)(?:-[\w.]+)?): (?:fatal )?error: (.*)$/;
 const LD_REF_RE = /^(.+?):(?:\d+:)?(?:\(\.[\w.$]+\+0x[0-9a-f]+\))?:? ?(undefined reference to .*|multiple definition of .*)$/;
 
 /**
@@ -54,6 +56,11 @@ export function parseDiagnostics(output: string, workDir = "/work"): Diagnostic[
         severity: (m[4] === "fatal error" ? "error" : m[4]) as Severity,
         message: (m[5] ? `${m[5]}: ` : "") + m[6]!.trim(),
       });
+      continue;
+    }
+    m = line.match(DRIVER_RE);
+    if (m) {
+      push({ file: "compiler", line: 0, column: 0, severity: "error", message: m[2]!.trim() });
       continue;
     }
     m = line.match(LD_REF_RE);
