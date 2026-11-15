@@ -11,4 +11,4 @@ RUN pnpm install --frozen-lockfile --filter @mcs/linux-builder...
 RUN useradd --system --uid 10002 --create-home builder
 USER builder
 ENV MCS_WORK_ROOT=/home/builder/work
-CMD ["pnpm", "--filter", "@mcs/linux-builder", "start"]
+CMD ["workers/linux-builder/node_modules/.bin/tsx", "workers/linux-builder/src/index.ts"]

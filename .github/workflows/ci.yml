@@ -90,13 +90,19 @@ jobs:
             *.log
 
   docker:
-    name: Docker images build
+    name: Docker Compose (full studio) build + smoke test
     runs-on: ubuntu-24.04
     needs: check
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -f infrastructure/docker/api.Dockerfile -t mcs-api .
-      - run: docker build -f infrastructure/docker/linux-builder.Dockerfile -t mcs-linux-builder .
+      - name: Build and start the full studio with Docker Compose (what Start-Studio.bat does)
+        run: |
+          printf 'MCS_WORKER_TOKEN=%s\nMCS_PORT=4000\n' "$(openssl rand -hex 32)" > .env
+          docker compose -f infrastructure/docker/docker-compose.yml --env-file .env up -d --build
+      - name: Smoke test (workers online, EXE builds and runs in the sandbox)
+        run: MCS_BASE_URL=http://127.0.0.1:4000 node tests/e2e/docker-smoke.mjs
+      - if: failure()
+        run: docker compose -f infrastructure/docker/docker-compose.yml --env-file .env logs --tail=100
 
   deploy:
     name: Deploy (main only, opt-in)

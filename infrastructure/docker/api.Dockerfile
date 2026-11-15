@@ -16,4 +16,5 @@ VOLUME ["/data"]
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s CMD node -e "fetch('http://127.0.0.1:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 ENV NODE_OPTIONS=--disable-warning=ExperimentalWarning
-CMD ["pnpm", "--filter", "@mcs/api", "start"]
+# Run the dependency shim directly: no package-manager download at container start.
+CMD ["apps/api/node_modules/.bin/tsx", "apps/api/src/index.ts"]

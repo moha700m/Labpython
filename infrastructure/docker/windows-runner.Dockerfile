@@ -10,4 +10,4 @@ RUN pnpm install --frozen-lockfile --filter @mcs/windows-runner...
 RUN useradd --system --uid 10003 --create-home runner
 USER runner
 ENV MCS_WORK_ROOT=/home/runner/work
-CMD ["pnpm", "--filter", "@mcs/windows-runner", "start"]
+CMD ["workers/windows-runner/node_modules/.bin/tsx", "workers/windows-runner/src/index.ts"]

@@ -19,6 +19,23 @@ Codespaces quota. Verified locally in the same `typescript-node:22-bookworm` ima
 non-root): all six worker capabilities come up, a template builds into a PE32+ EXE and runs under
 Wine 8 with correct Arabic output. A real Codespace has not been created from this session.
 
+## On your own computer (Windows / macOS / Linux)
+
+`Start-Studio.bat` (Windows) and `start-studio.sh` (macOS/Linux) check Docker, create a private random
+worker token in `.env` (git-ignored), run `docker compose up -d --build`, wait for `/api/health` and open
+`http://localhost:4000/run/`. `Stop-Studio.bat` / `./start-studio.sh stop` shut it down.
+Requires Docker Desktop (WSL 2 backend on Windows).
+
+Verified: the compose stack was built and started here (base image swapped for an equivalent local
+Debian bookworm + Node 22 image because Docker Hub rate-limited this environment), and the full
+15-step Playwright E2E suite passed against it. The `.bat` launcher's control flow was checked under
+Wine's `cmd`; it has not been run on a real Windows machine. CI builds the real images and runs
+`tests/e2e/docker-smoke.mjs` against the compose stack on every push.
+
+Workers need `security_opt: seccomp=unconfined, apparmor=unconfined, systempaths=unconfined` —
+the last one lets bubblewrap mount a fresh `/proc` inside the container (Docker masks it otherwise,
+and every build would fail with "Can't mount proc").
+
 ## Single host with Docker Compose
 
 ```bash

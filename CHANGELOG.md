@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.1 — 2026-11-15
+
+### Added
+- Run the whole studio on your own computer: `Start-Studio.bat` / `Stop-Studio.bat` (Windows, Docker
+  Desktop) and `start-studio.sh` (macOS/Linux). README download + double-click instructions.
+- `tests/e2e/docker-smoke.mjs` and a CI job that builds and starts the compose stack and checks that
+  all workers are online and a real EXE builds and runs.
+
+### Fixed
+- Builds failed inside Docker ("bwrap: Can't mount proc"): workers now use `systempaths=unconfined`,
+  and the start-up sandbox probe mounts `/proc` so such setups are reported immediately.
+- Container commands run the `tsx` shim directly (no package-manager download at start-up).
+- Codespaces: link file + services kept alive (see 0.3.0 follow-up commit).
+
 ## 0.3.0 — 2026-11-15 — «ذكي، بسيط، سعودي»
 
 Informed by similar projects (Compiler Explorer and OnlineGDB share links without sign-in; Coddy's

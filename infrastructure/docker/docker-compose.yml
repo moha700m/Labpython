@@ -3,9 +3,10 @@
 services:
   api:
     build: { context: ../.., dockerfile: infrastructure/docker/api.Dockerfile }
-    ports: ["4000:4000"]
+    ports: ["${MCS_PORT:-4000}:4000"]
     environment:
       MCS_WORKER_TOKEN: ${MCS_WORKER_TOKEN:?set MCS_WORKER_TOKEN}
+      NODE_OPTIONS: --disable-warning=ExperimentalWarning
       MCS_COOKIE_SECURE: ${MCS_COOKIE_SECURE:-0}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     volumes: ["studio-data:/data"]
@@ -17,8 +18,9 @@ services:
     environment:
       MCS_API_URL: http://api:4000
       MCS_WORKER_TOKEN: ${MCS_WORKER_TOKEN}
-    # bubblewrap needs user namespaces inside the container.
-    security_opt: ["seccomp=unconfined", "apparmor=unconfined"]
+    # bubblewrap needs user namespaces and its own /proc inside the container
+    # (systempaths=unconfined lifts Docker's /proc masking so the sandbox can mount a fresh proc).
+    security_opt: ["seccomp=unconfined", "apparmor=unconfined", "systempaths=unconfined"]
     cap_drop: ["ALL"]
     pids_limit: 512
     mem_limit: 4g
@@ -31,7 +33,7 @@ services:
     environment:
       MCS_API_URL: http://api:4000
       MCS_WORKER_TOKEN: ${MCS_WORKER_TOKEN}
-    security_opt: ["seccomp=unconfined", "apparmor=unconfined"]
+    security_opt: ["seccomp=unconfined", "apparmor=unconfined", "systempaths=unconfined"]
     cap_drop: ["ALL"]
     pids_limit: 512
     mem_limit: 4g

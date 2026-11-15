@@ -8,6 +8,18 @@
 
 ![IDE](docs/screenshots/05-run-terminal.png)
 
+## 💻 نزّل الاستديو كامل على كمبيوترك (ويندوز)
+
+1. ثبّت **Docker Desktop** من https://www.docker.com/products/docker-desktop/ وشغّله (لو طلب تفعيل WSL 2 وافق وأعد تشغيل الجهاز). انتظر لين يكتب **Engine running**.
+2. نزّل المشروع: **[Labpython-main.zip](https://github.com/moha700m/Labpython/archive/refs/heads/main.zip)** وفك الضغط.
+3. ادخل المجلد واضغط **دبل كليك على `Start-Studio.bat`**.
+4. أول مرة ياخذ **10–20 دقيقة** (ينزّل المترجمات وWine، حوالي 3–5 جيجا). بعدها يفتح لك المتصفح على **http://localhost:4000/run/** تلقائياً، والمرات الجاية ثواني.
+5. للإيقاف: دبل كليك على **`Stop-Studio.bat`**.
+
+ماك ولينكس: نفس الشي بس شغّل `./start-studio.sh` (وللإيقاف `./start-studio.sh stop`).
+
+كل شي يشتغل على جهازك: البناء والتشغيل والمعاينة داخل حاويات معزولة. ملفات EXE تنزلها من زر «تنزيل EXE» وتشغّلها على ويندوز مباشرة.
+
 ## 🚀 شغّل المنصة على GitHub بضغطة واحدة
 
 1. اضغط زر **Open in GitHub Codespaces** أعلاه، ثم **Create codespace**.
