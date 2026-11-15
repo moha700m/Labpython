@@ -2,7 +2,7 @@
 
 منصة تطوير C++ عربية تعمل من المتصفح (الكمبيوتر والجوال): أنشئ مشروعاً أو ارفعه، حرّر الكود في محرر احترافي، اضغط **بناء** لتحصل على ملف **Windows EXE حقيقي**، ثم نزّله أو شغّله وتفاعل معه من المتصفح.
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/moha700m/Labpython?quickstart=1)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/moha700m/Labpython/tree/main?quickstart=1)
 
 > An Arabic-first, browser-based C++ IDE: edit, build real Windows `.exe` files on isolated workers, download them, or run and interact with them from the browser.
 
